@@ -7,8 +7,6 @@ help:
 	@echo "env-remove       remove 'gnn-env'."
 	@echo "format           format code."
 	@echo "lint             run linters."
-	@echo "test             run unit tests."
-	@echo "requirements     Compute pinned production requirements."
 
 env:
 	conda env create --file environment.yml
@@ -28,10 +26,3 @@ lint:
 	yapf --diff --recursive gnn
 	pylint -v gnn
 	mypy gnn
-
-test:
-	pytest -v
-
-
-requirements:
-	pip-compile
