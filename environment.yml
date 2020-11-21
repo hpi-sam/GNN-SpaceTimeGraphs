@@ -1,0 +1,11 @@
+name: gnn-env
+channels:
+  - conda-forge
+  - pytorch
+dependencies:
+  - ipython
+  - pytorch
+  - numpy
+  - networkx
+  - pip:
+      - torch-geometric
