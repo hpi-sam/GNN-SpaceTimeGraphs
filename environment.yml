@@ -7,9 +7,11 @@ dependencies:
   - pytorch
   - ipython
   - numpy
+  - pandas
   - networkx
   - yapf
   - pip
   - pip:
       - torch-geometric
       - pip-tools
+
