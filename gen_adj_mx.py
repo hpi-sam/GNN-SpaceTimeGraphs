@@ -7,10 +7,22 @@ import numpy as np
 import pandas as pd
 import pickle
 
+# suggestion: include the name of the Dataset into the argparser instead of the `normalized_k`
+# and include the `dataset` parameter into the `get_adjacency_matrix` method.
+#   parser.add_argument('--dataset', type=str, default='PEMS-Bay', required=True)
+#         normalized_k = normalization_k(dataset)
+
+def normalization_k(dataset='PEMS-Bay'):
+    """ Returns the `normalized_k` based on the dataset 
+    :param dataset: dataset being used
+    :return:
+    """
+    normalization = {'PEMS-Bay':0.5, 'METR-LA':0.1}
+    return normalization[dataset]
 
 def get_adjacency_matrix(distance_df, sensor_ids, normalized_k=0.1):
-    """
-
+    """ Generates an adjacency matrix based on the distance of the sensors and the normalization factor k.
+    
     :param distance_df: data frame with three columns: [from, to, distance].
     :param sensor_ids: list of sensor ids.
     :param normalized_k: entries that become lower than normalized_k after normalization are set to zero for sparsity.
