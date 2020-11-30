@@ -9,7 +9,7 @@ import pickle
 
 # suggestion: include the name of the Dataset into the argparser instead of the `normalized_k`
 # and include the `dataset` parameter into the `get_adjacency_matrix` method.
-# parser.add_argument('--sensor_ids_filename', type=str, default='data/graph_sensor_ids.txt')
+# parser.add_argument('-d, --dataset', type=str, default='PEMS-Bay')
 # eg: def get_adjacency_matrix(distance_df, sensor_ids, dataset='PEMS-Bay'):
 # normalized_k = normalization_k(dataset)
 
