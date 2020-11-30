@@ -5,7 +5,7 @@ import pandas as pd
 import pickle
 
 #A = np.load("Seattle_Loop_Dataset/Loop_Seattle_2015_A.npy")
-with open('data/adj_mx_paper.pkl', 'rb') as f:
+with open('data/pems_bay/adj_mx_bay.pkl', 'rb') as f:
     sensor_ids, sensor_id_to_ind, A = pickle.load(f, encoding='latin-1')
 #X = np.load("Seattle_Loop_Dataset/Loop_Seattle_2015_A.npy")
 #mp = pd.read_csv("Seattle_Loop_Dataset/nodes_loop_mp_list.csv")["milepost"]
@@ -26,7 +26,7 @@ all_layouts = [
 ]
 
 g = nx.convert_matrix.from_numpy_matrix(A)
-pos = np.load('data/pos_la.npy')
+pos = np.load('data/pems_bay/pos_bay.npy')
 print(g.nodes.values())
 for layout in all_layouts:
     #nx.draw(g, node_color=col, node_size=50, pos=layout(g))
