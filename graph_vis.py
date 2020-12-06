@@ -12,10 +12,10 @@ layouts = {
     "kamada_kawai": nx.kamada_kawai_layout,
     "random": nx.random_layout,
     "shell": nx.shell_layout,
-    "spring":nx.spring_layout,
+    "spring": nx.spring_layout,
     "spectral": nx.spectral_layout,
     "fruchterman_reingold": nx.fruchterman_reingold_layout,
-    "spiral": nx.spiral_layout,}
+    "spiral": nx.spiral_layout}
 
 
 def graph_plotter(A: np.ndarray, **draw_args):
