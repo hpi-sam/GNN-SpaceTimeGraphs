@@ -11,10 +11,10 @@ dependencies:
   - networkx
   - yapf
   - pip
-  - tables
   - pip:
       - torch-geometric
       - pip-tools
       - node2vec
       - word2vec
+      - tables
 
