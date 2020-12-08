@@ -92,6 +92,7 @@ def real_moving_average(df, col, sliding_window_in_hours, forecast_window_in_min
     )
     return forecast_df
 
+# still need to compute MAE and RMSE for all data
 def moving_average_forecast(df, col, sliding_window_in_hours, forecast_window_in_minutes, stride_in_minutes):
     """ Applies moving average forecast across all the dataset. Stride can be applied to make forecasting faster, 
     ie, stride makes the sliding window jump a window of `stride_in_minutes`.
@@ -105,10 +106,15 @@ def moving_average_forecast(df, col, sliding_window_in_hours, forecast_window_in
     
     all_predictions = []
     
-    for i in range(len(df)//stride):
+    if stride_in_minutes == 0:
+        max_it = len(df)
+    else:
+        max_it = len(df)//stride
+        
+    for i in range(max_it):
         try:
             smaller_df = df.iloc[i*stride: (sliding_window+forecast_window) + (i+1)*stride]
-            preds = sliding_window_forecast(smaller_df, col, sliding_window_in_hours, forecast_window_in_minutes)
+            preds = real_moving_average(smaller_df, col, sliding_window_in_hours, forecast_window_in_minutes)
             fdf = pd.concat([smaller_df[[col]].loc[preds.index[0]:preds.index[-1]],preds], axis=1)
             fdf = fdf.rename(columns={0:col+'_pred'})
             all_predictions.append(fdf)
