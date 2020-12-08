@@ -28,13 +28,13 @@ def best_moving_average(df, col, average_window_in_hours=27, from_date=None, to_
     Beware! This code uses data from the future to perform predictions.
     Meaning it is meant to be used to generate the "perfect" moving average baseline.
     
-    :param df: dataset being used
-    :param col: column for which the moving average will be applied
-    :param average_window_in_hours: the window (in hours) used to generate predictions
-    :param from_date: initial date to be shown in the plot
-    :param to_date: end date to be shown in the plot
-    :param plot: plot moving average and original df
-    :return (MAE, RMSE): Both metrics are calculated for the column `col`
+    :param df (pandas.DataFrame): dataset being used
+    :param col (str): column for which the moving average will be applied
+    :param average_window_in_hours (int): the window (in hours) used to generate predictions
+    :param from_date (str): initial date to be shown in the plot, format: "YYYY-MM-DD"
+    :param to_date (str): end date to be shown in the plot
+    :param plot (bool): plot moving average and original df
+    :return MAE, RMSE (tuple): Both metrics are calculated for the column `col`
     """ 
     ndf = df[[col]]
     window_size = average_window_in_hours*12
@@ -55,7 +55,8 @@ def calculate_metrics(df, average_window_in_hours, verbose=5, save=True):
     :param df (panads.DataFrame): dataset being used
     :param average_window_in_hours (int): the window (in hours) used to generate predictions
     :param verbose (int): option to display the calculations on-the-fly.
-                          Values are going to be displayed after `verbose` iterations.      
+                          Values are going to be displayed after `verbose` iterations. 
+    :param save (bool): 
     :return mae_and_rmse (dict): dictionary containing (MAE, RMSE) for each column of `df`
     """ 
     mae_and_rmse = {}
@@ -65,8 +66,55 @@ def calculate_metrics(df, average_window_in_hours, verbose=5, save=True):
         if it%verbose == 0:
             print('Column: {}, MAE: {}, RMSE: {}'.format(col, MAE, RMSE))
     if save:
+        # TODO: add param to attribute filename and filedir
         pd.DataFrame(mae_rmse, index=['MAE', 'RMSE']).to_csv('./experiment_results/seattle_best_moving_average_mae_rmse.csv')
     return mae_and_rmse
+
+
+
+def real_moving_average(df, col, sliding_window_in_hours, forecast_window_in_minutes):
+    """ Calculating the moving average using a sliding window of `sliding_window_in_hours` 
+    on a forecast window of `forecast_window_in_minutes` over the dataset. 
+    Returns a dataframe with the forecast for the given dataframe.
+    """
+    sliding_window = 12*sliding_window_in_hours
+    forecast_window = ((forecast_window_in_minutes+5)//5)
+    
+    X = df[col].values
+    Y = X[:sliding_window]
+    
+    for i in range(forecast_window):
+        ypred = np.mean(Y[i: i+sliding_window])
+        Y = np.append(Y, ypred)
+    forecast_df = pd.DataFrame(
+        data=Y[len(Y)-forecast_window:], 
+        index=df.index[sliding_window:sliding_window+forecast_window]
+    )
+    return forecast_df
+
+def moving_average_forecast(df, col, sliding_window_in_hours, forecast_window_in_minutes, stride_in_minutes):
+    """ Applies moving average forecast across all the dataset. Stride can be applied to make forecasting faster, 
+    ie, stride makes the sliding window jump a window of `stride_in_minutes`.
+    
+    Returns a pandas.DataFrame containing a side-by-side comparison of the real dataframe and its predictions, 
+    for all predicted values.
+    """
+    sliding_window = 12*sliding_window_in_hours
+    forecast_window = ((forecast_window_in_minutes+5)//5)
+    stride = (stride_in_minutes//5)
+    
+    all_predictions = []
+    
+    for i in range(len(df)//stride):
+        try:
+            smaller_df = df.iloc[i*stride: (sliding_window+forecast_window) + (i+1)*stride]
+            preds = sliding_window_forecast(smaller_df, col, sliding_window_in_hours, forecast_window_in_minutes)
+            fdf = pd.concat([smaller_df[[col]].loc[preds.index[0]:preds.index[-1]],preds], axis=1)
+            fdf = fdf.rename(columns={0:col+'_pred'})
+            all_predictions.append(fdf)
+        except:
+            pass
+    return pd.concat(all_predictions, axis=0)
 
 
 def main():
