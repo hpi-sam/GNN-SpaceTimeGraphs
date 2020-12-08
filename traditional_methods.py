@@ -9,10 +9,10 @@ pd.options.mode.chained_assignment = None # deactivating slicing warns
 
 def load_seattle_speed_matrix():
     """ Loads the whole Seattle `speed_matrix_2015` into memory.
-    Caution: ~ 200 mb of data
+    Caution ~ 200 mb of data
     
     :param: 
-    :return df: speed matrix as a pandas.DataFrame, columns are sensors, rows are timestamps
+    :return df (pandas.DataFrame): speed matrix as DataFrame. Columns are sensors, rows are timestamps
     """ 
     speed_matrix = './data/Seattle_Loop_Dataset/speed_matrix_2015'
     print('Loading data...')
@@ -55,8 +55,7 @@ def calculate_metrics(df, average_window_in_hours, verbose=5, save=True):
     :param df (panads.DataFrame): dataset being used
     :param average_window_in_hours (int): the window (in hours) used to generate predictions
     :param verbose (int): option to display the calculations on-the-fly.
-        Values are going to be displayed after `verbose` iterations.
-                    
+                          Values are going to be displayed after `verbose` iterations.      
     :return mae_and_rmse (dict): dictionary containing (MAE, RMSE) for each column of `df`
     """ 
     mae_and_rmse = {}
