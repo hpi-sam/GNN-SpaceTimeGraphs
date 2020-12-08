@@ -124,14 +124,31 @@ def moving_average_forecast(df, col, sliding_window_in_hours, forecast_window_in
     return pd.concat(all_predictions, axis=0)
 
 
-def main():
-    # TODO: setup argument parser
-    SLIDING_WINDOW_IN_HOURS = 27
-    SAVE_METRICS = True
-    VERBOSE = 5
-    df = load_seattle_speed_matrix()
-    mae_and_rmse_dict = calculate_metrics(df, SLIDING_WINDOW_IN_HOURS, VERBOSE, SAVE_METRICS)
+def metrics(preds_df):
+    """ Given a `preds_df` containing two columns, the first with real values and the second being preds,
+    returns MAE and RMSE
 
+    """
+    preds = preds_df
+    MAE = np.mean(np.abs(preds[preds.columns[0]] - preds[preds.columns[1]] ))
+    RMSE = np.sqrt(np.mean(np.power(preds[preds.columns[0]] - preds[preds.columns[1]], 2)))
+    return (MAE, RMSE)
+
+
+def main():
+    # this options should go into an argument parser
+    SLIDING_WINDOW_IN_HOURS = 2
+    FORECAST_WINDOW_IN_MINUTES = 15
+    STRIDE_IN_MINUTES = 60
+    
+    metrics_dict = {}
+    for col in df.columns:
+        print(col)
+        preds = moving_average_forecast(df, col, SLIDING_WINDOW_IN_HOURS, FORECAST_WINDOW_IN_MINUTES)
+        mae_rmse = metrics(preds)
+        metrics_dict[col] = mae_rmse
+        
+    pd.DataFrame(metrics_dict, index=['MAE', 'RMSE']).to_csv('./experiment_results/15_min_mae_rmse_seattle.csv')
     
 if __name__ == '__main__':
     main()
