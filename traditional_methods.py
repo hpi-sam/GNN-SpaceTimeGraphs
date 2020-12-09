@@ -137,10 +137,11 @@ def metrics(preds_df):
 
 def main():
     # this options should go into an argument parser
-    SLIDING_WINDOW_IN_HOURS = 2
+    SLIDING_WINDOW_IN_HOURS = 4
     FORECAST_WINDOW_IN_MINUTES = 15
     STRIDE_IN_MINUTES = 60
     
+    df = load_seattle_speed_matrix()
     metrics_dict = {}
     for col in df.columns:
         print(col)
@@ -148,7 +149,7 @@ def main():
         mae_rmse = metrics(preds)
         metrics_dict[col] = mae_rmse
         
-    pd.DataFrame(metrics_dict, index=['MAE', 'RMSE']).to_csv('./experiment_results/15_min_mae_rmse_seattle.csv')
+    pd.DataFrame(metrics_dict, index=['MAE', 'RMSE']).to_csv('./experiment_results/training_window_4_hour_forecast_window_15_min_mae_rmse_seattle.csv')
     
 if __name__ == '__main__':
     main()
