@@ -10,7 +10,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import pathlib as path
 import pickle
-import tqdm
+from tqdm import tqdm
 
 from torch.utils.data import DataLoader
 from gnn.models import GCN
@@ -28,7 +28,7 @@ parser.add_argument(
     '--batch_size', type=int, default=1, help="Batch size for training"
 )
 parser.add_argument(
-    '--n_epochs', type=int, default=1, help="Number of training epochs"
+    '--n_epochs', type=int, default=100, help="Number of training epochs"
 )
 parser.add_argument(
     '--pickled_files', type=str, default="metr_la/adj_mx_la.pkl", help="File containing the adjacency matrix"
@@ -62,7 +62,7 @@ optimizer = optim.Adam(model.parameters(),
 def train(epoch):
     t = time.time()
 
-    for i_batch, sample_batched in enumerate(dataset):
+    for sample_batched in tqdm(dataset):
         model.train()
         optimizer.zero_grad()
         x = torch.Tensor(sample_batched['features'])
@@ -71,9 +71,7 @@ def train(epoch):
         loss_train.backward()
         optimizer.step()
 
-        print('batch: {:04d}'.format(i_batch + 1),
-              'loss_train: {:.4f}'.format(loss_train.item()),
-              'time: {:.4f}s'.format(time.time() - t))
+    tqdm.write('loss_train: {:.4f}'.format(loss_train.item()))
 
 
 for epoch in range(args.n_epochs):
