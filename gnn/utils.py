@@ -7,6 +7,7 @@ import argparse
 import numpy as np
 import os
 import pandas as pd
+import pickle
 
 
 def generate_graph_seq2seq_io_data(
@@ -51,6 +52,55 @@ def generate_graph_seq2seq_io_data(
     x = np.stack(x, axis=0)
     y = np.stack(y, axis=0)
     return x, y
+
+
+def generate_train_val_test_one_step(args):
+    df = pd.read_hdf(args.traffic_df_filename)
+    num_samples, num_nodes = df.shape
+    data = np.expand_dims(df.values, axis=-1)
+
+    # epoch_len = num_samples + min(x_offsets) - max(y_offsets)
+    x, y = [], []
+    # t is the index of the last observation.
+    min_t = 0
+    max_t = num_samples - 1
+    for t in range(min_t, max_t):
+        x_t = data[t, ...]
+        y_t = data[t + 1, ...]
+        x.append(x_t)
+        y.append(y_t)
+    x = np.stack(x, axis=0)
+    y = np.stack(y, axis=0)
+
+    print("x shape: ", x.shape, ", y shape: ", y.shape)
+    # Write the data into npz file.
+    # num_test = 6831, using the last 6831 examples as testing.
+    # for the rest: 7/8 is used for training, and 1/8 is used for validation.
+    num_samples = x.shape[0]
+    num_test = round(num_samples * 0.2)
+    num_train = round(num_samples * 0.7)
+    num_val = num_samples - num_test - num_train
+
+    # train
+    x_train, y_train = x[:num_train], y[:num_train]
+    # val
+    x_val, y_val = (
+        x[num_train: num_train + num_val],
+        y[num_train: num_train + num_val],
+    )
+    # test
+    x_test, y_test = x[-num_test:], y[-num_test:]
+
+    for cat in ["train", "val", "test"]:
+        _x, _y = locals()["x_" + cat], locals()["y_" + cat]
+        print(cat, "x: ", _x.shape, "y:", _y.shape)
+        np.savez_compressed(
+            os.path.join(args.output_dir, "%s.npz" % cat),
+            x=_x,
+            y=_y,
+            x_offsets=0,
+            y_offsets=1,
+        )
 
 
 def generate_train_val_test(args):
@@ -103,9 +153,19 @@ def generate_train_val_test(args):
         )
 
 
+def load_data(filename):
+    place = args.pickled_files
+    place_path = path.Path("../data")/place
+    with open(place_path/f"adj_mx_{place.split('_')[1]}.pkl", "rb") as f:
+        sensor_ids, sensor_id_to_ind, adj = pickle.load(f, encoding='latin-1')
+    features, labels, x_offset, y_offset = np.load(filename)
+
+    return adj, features, labels
+
+
 def main(args):
     print("Generating training data")
-    generate_train_val_test(args)
+    generate_train_val_test_one_step(args)
 
 
 if __name__ == "__main__":

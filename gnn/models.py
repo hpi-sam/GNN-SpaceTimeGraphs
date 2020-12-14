@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from torch.nn.parameter import Parameter
-from layers import SLConv
+from gnn.layers import SLConv
 
 
 class GCN(nn.Module):
