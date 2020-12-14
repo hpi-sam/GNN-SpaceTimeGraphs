@@ -3,7 +3,7 @@ from torch.utils.data import Dataset
 import torch
 
 
-class TraficDataset(Dataset):
+class TrafficDataset(Dataset):
     def __init__(self, args):
         _, self.features_train, self.labels_train = load_data(args.train_file)
 
