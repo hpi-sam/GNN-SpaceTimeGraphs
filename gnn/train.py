@@ -10,6 +10,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import pathlib as path
 import pickle
+import tqdm
 
 from torch.utils.data import DataLoader
 from gnn.models import GCN
@@ -38,7 +39,7 @@ place = args.pickled_files
 place_path = path.Path("./data") / place
 with open(place_path, "rb") as f:
     _, _, adj = pickle.load(f, encoding='latin-1')
-adj = normalize(adj)
+adj = torch.Tensor(normalize(adj))
 
 
 
@@ -61,17 +62,18 @@ optimizer = optim.Adam(model.parameters(),
 def train(epoch):
     t = time.time()
 
-    for i_batch, sample_batched in enumerate(dataloader):
+    for i_batch, sample_batched in enumerate(dataset):
         model.train()
         optimizer.zero_grad()
-        output = model(sample_batched['features'], adj)
-        loss_train = F.mse_loss(output, sample_batched['labels'])
+        x = torch.Tensor(sample_batched['features'])
+        output = model(x, adj)
+        loss_train = F.mse_loss(output, x)
         loss_train.backward()
         optimizer.step()
 
-    print('Epoch: {:04d}'.format(epoch + 1),
-          'loss_train: {:.4f}'.format(loss_train.item()),
-          'time: {:.4f}s'.format(time.time() - t))
+        print('batch: {:04d}'.format(i_batch + 1),
+              'loss_train: {:.4f}'.format(loss_train.item()),
+              'time: {:.4f}s'.format(time.time() - t))
 
 
 for epoch in range(args.n_epochs):

@@ -2,3 +2,4 @@
 *speed_matrix_2015
 *.ipynb_checkpoints
 *.npz
+*__pycache__

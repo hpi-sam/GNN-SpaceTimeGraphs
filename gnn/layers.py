@@ -11,7 +11,7 @@ class SLConv(nn.Module):
         super(SLConv, self).__init__()
         self.in_chanels = in_chanels
         self.out_chanels = out_chanels
-        self.weight = Parameter(torch.FloatTensor(in_chanels, out_chanels))
+        self.weight = Parameter(torch.Tensor(in_chanels, out_chanels))
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -19,7 +19,7 @@ class SLConv(nn.Module):
         self.weight.data.uniform_(-stdv, stdv)
 
     def forward(self, x, adj, S):
-        x = torch.mm(x, self.weight)  # (N,out_chanels)
+        x = torch.matmul(x, self.weight)  # (1,N,out_chanels)
         weighting = torch.mul(S, adj)  # (N,N)
         output = torch.mm(weighting, x)
         return output
