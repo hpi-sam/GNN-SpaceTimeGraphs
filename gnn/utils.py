@@ -8,6 +8,7 @@ import numpy as np
 import os
 import pandas as pd
 import pickle
+import scipy.sparse as sp
 
 
 def generate_graph_seq2seq_io_data(
@@ -153,14 +154,20 @@ def generate_train_val_test(args):
         )
 
 
-def load_data(filename):
-    place = args.pickled_files
-    place_path = path.Path("../data")/place
-    with open(place_path/f"adj_mx_{place.split('_')[1]}.pkl", "rb") as f:
-        sensor_ids, sensor_id_to_ind, adj = pickle.load(f, encoding='latin-1')
-    features, labels, x_offset, y_offset = np.load(filename)
+def normalize(mx):
+    """Row-normalize sparse matrix"""
+    rowsum = np.array(mx.sum(1))
+    r_inv = np.power(rowsum, -1).flatten()
+    r_inv[np.isinf(r_inv)] = 0.
+    r_mat_inv = sp.diags(r_inv)
+    mx = r_mat_inv.dot(mx)
+    return mx
 
-    return adj, features, labels
+
+def load_data(filename):
+    npz = np.load(filename)
+    features, labels = npz['x'], npz['y']
+    return features, labels
 
 
 def main(args):

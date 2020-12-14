@@ -5,7 +5,10 @@ import torch
 
 class TrafficDataset(Dataset):
     def __init__(self, args):
-        _, self.features_train, self.labels_train = load_data(args.train_file)
+        self.features_train, self.labels_train = load_data(args.train_file)
+
+    def __len__(self):
+        return len(self.features_train)
 
     def __getitem__(self, idx):
         if torch.is_tensor(idx):

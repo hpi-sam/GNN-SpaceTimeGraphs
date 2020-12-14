@@ -8,35 +8,71 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
+import pathlib as path
+import pickle
 
+from torch.utils.data import DataLoader
 from gnn.models import GCN
-from gnn.utils import load_data
+from gnn.utils import normalize
+from gnn.dataset import TrafficDataset
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--train_file", type=str, default="data/metr_la_train.npz", help="File containing the training data"
+    "--train_file", type=str, default="./data/metr_la/train.npz", help="File containing the training data"
 )
 parser.add_argument(
-    "--test_file", type=str, default="data/metr_la_test.npz", help="File containing the testing data"
+    "--test_file", type=str, default="./data/metr_la/test.npz", help="File containing the testing data"
+)
+parser.add_argument(
+    '--batch_size', type=int, default=1, help="Batch size for training"
+)
+parser.add_argument(
+    '--n_epochs', type=int, default=1, help="Number of training epochs"
+)
+parser.add_argument(
+    '--pickled_files', type=str, default="metr_la/adj_mx_la.pkl", help="File containing the adjacency matrix"
 )
 args = parser.parse_args()
 
-# Load data
-adj, features_train, labels_train = load_data(args.train_file)
-_, features_test, labels_test = load_data(args.test_file)
+place = args.pickled_files
+place_path = path.Path("./data") / place
+with open(place_path, "rb") as f:
+    _, _, adj = pickle.load(f, encoding='latin-1')
+adj = normalize(adj)
+
+
 
 # Dataset
+dataset = TrafficDataset(args)
 
 # use data loader
+dataloader = DataLoader(dataset, batch_size=args.batch_size,
+                        shuffle=True, num_workers=8)
 
 # Model and optimizer
-model = GCN(nfeat=features_train.shape[2],
-            nhid=args.hidden,
+model = GCN(nfeat=dataset.features_train.shape[2],
+            nhid=100,
             nclass=1,
-            n=features_test.shape[1])
+            n=1)
 optimizer = optim.Adam(model.parameters(),
-                       lr=args.lr, weight_decay=args.weight_decay)
+                       lr=0.1, weight_decay=0.95)
 
-# loss function (l2-loss)
 
-# backprop
+def train(epoch):
+    t = time.time()
+
+    for i_batch, sample_batched in enumerate(dataloader):
+        model.train()
+        optimizer.zero_grad()
+        output = model(sample_batched['features'], adj)
+        loss_train = F.mse_loss(output, sample_batched['labels'])
+        loss_train.backward()
+        optimizer.step()
+
+    print('Epoch: {:04d}'.format(epoch + 1),
+          'loss_train: {:.4f}'.format(loss_train.item()),
+          'time: {:.4f}s'.format(time.time() - t))
+
+
+for epoch in range(args.n_epochs):
+    train(epoch)
