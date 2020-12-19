@@ -7,7 +7,6 @@ import argparse
 import numpy as np
 import os
 import pandas as pd
-import pickle
 import scipy.sparse as sp
 
 
@@ -59,7 +58,13 @@ def generate_train_val_test_one_step(args):
     df = pd.read_hdf(args.traffic_df_filename)
     num_samples, num_nodes = df.shape
     data = np.expand_dims(df.values, axis=-1)
+    data_list = [data]
+    if args.add_time_in_day:
+        time_ind = (df.index.values - df.index.values.astype("datetime64[D]")) / np.timedelta64(1, "D")
+        time_in_day = np.tile(time_ind, [1, num_nodes, 1]).transpose((2, 1, 0))
+        data_list.append(time_in_day)
 
+    data = np.concatenate(data_list, axis=-1)
     # epoch_len = num_samples + min(x_offsets) - max(y_offsets)
     x, y = [], []
     # t is the index of the last observation.
@@ -67,7 +72,7 @@ def generate_train_val_test_one_step(args):
     max_t = num_samples - 1
     for t in range(min_t, max_t):
         x_t = data[t, ...]
-        y_t = data[t + 1, ...]
+        y_t = data[t + 1, ..., :1]
         x.append(x_t)
         y.append(y_t)
     x = np.stack(x, axis=0)
@@ -179,6 +184,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--output_dir", type=str, default="data/", help="Output directory."
+    )
+    parser.add_argument(
+        "--add_time_in_day", type=int, default=1, help="Output directory."
     )
     parser.add_argument(
         "--traffic_df_filename",

@@ -13,5 +13,5 @@ class TrafficDataset(Dataset):
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
-        return {"features": self.features_train[idx, :, :], "train": self.labels_train[idx, :, :]}
+        return {"features": self.features_train[idx, :, :], "labels": self.labels_train[idx, :, :]}
 
