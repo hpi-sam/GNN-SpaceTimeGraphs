@@ -19,6 +19,7 @@ from gnn.dataset import TrafficDataset
 
 
 def train(epochs, model, optimizer, dataloader):
+    hist_loss = []
     for epoch in range(epochs):
         bar = tqdm(dataloader)
         losses = []
@@ -34,7 +35,10 @@ def train(epochs, model, optimizer, dataloader):
             losses.append(loss_train.item())
 
             bar.set_description('epoch: {}, loss_train: {:.4f}'.format(epoch + 1, loss_train.item()))
-        print('mean loss over batch: {:.4f}'.format(np.mean(losses)))
+        mean_loss = np.mean(losses)
+        hist_loss.append(mean_loss)
+        print('mean loss over batch: {:.4f}'.format(mean_loss))
+    return hist_loss
 
 
 if __name__ == "__main__":
@@ -81,4 +85,5 @@ if __name__ == "__main__":
                            lr=.01, weight_decay=0.95)
 
     model.train()
-    train(args.n_epochs, model, optimizer, dataloader)
+    hist_loss = train(args.n_epochs, model, optimizer, dataloader)
+    np.save(f"losses_on_{args.n_epochs}_epochs", hist_loss)
