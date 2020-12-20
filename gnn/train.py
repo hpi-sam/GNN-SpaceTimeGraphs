@@ -80,7 +80,7 @@ if __name__ == "__main__":
     model = GCN(nfeat=dataset.features_train.shape[2],
                 nhid=100,
                 nclass=1,
-                n=207).to(device)
+                n=207, device=device)
     optimizer = optim.Adam(model.parameters(),
                            lr=.01, weight_decay=0.95)
 
