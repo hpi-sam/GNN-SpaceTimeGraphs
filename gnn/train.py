@@ -75,7 +75,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.gpu:
-        DEVICE = torch.DEVICE("cuda:0" if torch.cuda.is_available() else "cpu")
+        DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     place = args.pickled_files
     place_path = path.Path("./data") / place
