@@ -1,8 +1,7 @@
 from __future__ import division
 from __future__ import print_function
-
+import sys
 import time
-import argparse
 import numpy as np
 
 import torch
@@ -10,17 +9,17 @@ import torch.nn.functional as F
 import torch.optim as optim
 import pathlib as path
 import pickle
-from tqdm import tqdm
+#from tqdm import tqdm
 
 from torch.utils.data import DataLoader
 from gnn.models import MultiTempGCN
 from gnn.utils import normalize
 from gnn.dataset import TrafficDataset
+from gnn.argparser import parse_arguments
 
 # DEFAULT VALUES
 SAVE_PATH = './saved_models/'
 DEVICE = torch.device("cpu")
-
 
 def train(epochs, model, optimizer, dataloader):
     hist_loss = []
@@ -46,36 +45,12 @@ def train(epochs, model, optimizer, dataloader):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--train_file", type=str, default="./data/metr_la/train.npz", help="File containing the training data"
-    )
-    parser.add_argument(
-        "--test_file", type=str, default="./data/metr_la/test.npz", help="File containing the testing data"
-    )
-    parser.add_argument(
-        '--batch_size', type=int, default=32, help="Batch size for training"
-    )
-    parser.add_argument(
-        '--save_model', action='store_true', help=''
-    )
-    parser.add_argument(
-        '--model_name', type=str, default='model_001', help="Prefix for the saved model inside `~/saved_models`"
-    )
-    parser.add_argument(
-        '--n_epochs', type=int, default=100, help="Number of training epochs"
-    )
-    parser.add_argument(
-        '--pickled_files', type=str, default="metr_la/adj_mx_la.pkl", help="File containing the adjacency matrix"
-    )
-
-    parser.add_argument(
-        '--gpu', action='store_true', help="Try to enforce the usage of cuda, but it will use CPU if it fails"
-    )
+    parser = parse_arguments()
     args = parser.parse_args()
-
     if args.gpu:
         DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    else:
+        DEVICE = torch.device("cpu")
 
     place = args.pickled_files
     place_path = path.Path("./data") / place
@@ -97,12 +72,13 @@ if __name__ == "__main__":
                          n=207, device=DEVICE)
 
     optimizer = optim.Adam(model.parameters(),
-                           lr=.01, weight_decay=0.95)
+                           lr=args.lr, weight_decay=args.weight_decay)
 
+    MODEL_SAVE_PATH = "./saved_models/"
     if args.model_name is not None:
-        filepath = SAVE_PATH + args.model_name + '.pt'
+        filepath = MODEL_SAVE_PATH + args.model_name + '.pt'
     else:
-        filepath = SAVE_PATH + 'model_001' + '.pt'
+        filepath = MODEL_SAVE_PATH + 'model_001' + '.pt'
     if path.Path(filepath).is_file():
         filepath = filepath.replace(filepath[-6:-3], '{0:03}'.format(int(filepath[-6:-3])+1))
 
