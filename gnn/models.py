@@ -48,21 +48,27 @@ class MultiTempGCN(nn.Module):
 
 
 class GCRNN(nn.Module):
-    def __init__(self, adj, num_nodes, num_units, input_dim, hidden_state_size, seq_len):
+    def __init__(self, adj, num_nodes, num_units, input_dim, nclass, hidden_state_size, seq_len):
         super(GCRNN, self).__init__()
         self.S = Parameter(torch.ones(num_nodes, num_nodes))
         self.hidden_state_size = hidden_state_size
         self.seq_len = seq_len
+        self.num_nodes = num_nodes
+        self.adj = adj
         self.gru1 = SLGRUCell(num_units, adj, num_nodes, input_dim, hidden_state_size)
+        self.gc1 = SLConv(hidden_state_size, 2*num_units, F.leaky_relu)
+        self.gc2 = SLConv(2*num_units, num_units, F.leaky_relu)
+        self.gc_last = SLConv(num_units, nclass)
 
     def forward(self, inputs, hidden_state=None):
-        batch_size, _ = inputs.size()
+        batch_size = inputs.shape[0]
         if hidden_state is None:
-            hidden_state = torch.zeros(batch_size, self.hidden_state_size)
+            hidden_state = torch.zeros(batch_size, self.num_nodes, self.hidden_state_size, device=torch.device("cuda:0"))
 
-        hidden_states = []
         for step in range(self.seq_len):
-            hidden_state = self.gru1(inputs[:, step], hidden_state, S)
-            hidden_states.append(hidden_state)
+            hidden_state = self.gru1(inputs[:, step], hidden_state, self.S)
 
-
+        x = self.gc1(hidden_state, self.adj, self.S)
+        x = self.gc2(x, self.adj, self.S)
+        output = self.gc_last(x, self.adj, self.S)
+        return output

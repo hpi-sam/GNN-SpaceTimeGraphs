@@ -42,15 +42,15 @@ class SLGRUCell(nn.Module):
         self._num_nodes = num_nodes
         self._input_dim = input_dim
         self._hidden_state_size = hidden_state_size
-        self.gc1 = SLConv(input_dim+hidden_state_size, num_units, num_nodes)
-        self.gc2 = SLConv(input_dim+hidden_state_size, num_units, num_nodes)
-        self.gc3 = SLConv(input_dim+hidden_state_size, num_units, num_nodes)
+        self.gc1 = SLConv(input_dim+hidden_state_size, hidden_state_size)
+        self.gc2 = SLConv(input_dim+hidden_state_size, hidden_state_size)
+        self.gc3 = SLConv(input_dim+hidden_state_size, hidden_state_size)
 
     def forward(self, inputs, hx, S):
-        x = torch.cat([inputs, hx])  # (batch_size, num_nodes, num_features+num_hidden_features)
+        x = torch.cat([inputs, hx], dim=2)  # (batch_size, num_nodes, num_features+num_hidden_features)
         u = torch.sigmoid(self.gc1(x, self.adj, S))
         r = torch.sigmoid(self.gc2(x, self.adj, S))
-        x = torch.cat([inputs, r*hx])
+        x = torch.cat([inputs, r*hx], dim=2)
         c = self._activation(self.gc3(x, self.adj, S))
 
         new_state = u * hx + (1.0 - u) * c
