@@ -3,3 +3,4 @@
 *.ipynb_checkpoints
 *.npz
 *__pycache__
+*.pt
