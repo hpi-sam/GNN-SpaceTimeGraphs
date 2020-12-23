@@ -5,8 +5,6 @@ import numpy as np
 
 from torch.nn.parameter import Parameter
 from gnn.layers import SLConv, SLGRUCell
-from gnn.dataset import TrafficDataset
-from torch.utils.data import DataLoader
 
 
 class GCN(nn.Module):
