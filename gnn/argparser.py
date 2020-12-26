@@ -42,8 +42,10 @@ def parse_arguments():
     parser.add_argument(
         '--pickled_files', type=str, default=ADJACENCY_PKL, help="File containing the adjacency matrix"
     )
-
     parser.add_argument(
         '--gpu', action='store_true', help="Try to enforce the usage of cuda, but it will use CPU if it fails"
+    )
+    parser.add_argument(
+        '--model', type=str, default="SLGCN", help="The name of the model that should be used"
     )
     return parser

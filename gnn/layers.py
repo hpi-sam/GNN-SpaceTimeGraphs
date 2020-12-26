@@ -2,7 +2,6 @@ import torch
 import math
 
 import torch.nn as nn
-
 from torch.nn.parameter import Parameter
 
 
@@ -34,48 +33,53 @@ class SLConv(nn.Module):
 
 
 class GlobalSLC(nn.Module):
-    def __init__(self, cin, cout, cs, cd, adj, act_func=None):
+    def __init__(self, cin, cout, N, cs=6, cd=6, act_func=None):
         super(GlobalSLC, self).__init__()
         self.cin = cin
         self.cout = cout
-        self.adj = adj
-        self.num_nodes = adj.shape[0]
+        self.num_nodes = N
+        self.cs = cs
+        self.cd = cd
 
         # convolution parameters
         self.ws = Parameter(torch.rand(self.num_nodes, self.num_nodes))
-        self.wp = Parameter(torch.rand(cin, cout))
-        self.ts = Parameter(torch.rand(cs, cin, cout))
-        self.td = Parameter(torch.rand(cd, cin, cout))
-        self.param_list = [self.ws, self.wp, self.ts, self, self.td]
+        self.wp = Parameter(torch.rand(cin, cin))
+        self.ts = Parameter(torch.rand((cs, cin, cout)))
+        self.td = Parameter(torch.rand((cd, cin, cout)))
+        self.param_list = [self.ws, self.wp, self.ts, self.td]
 
-        self.t0 = torch.eye(self.num_nodes, self.num_nodes)
-        if act_func:
-            self.act_func = act_func
+        self.t0 = torch.eye(self.num_nodes, self.num_nodes, device=torch.device('cuda:0'))
+        self.act_func = act_func
+        self.reset_parameters()
 
     def reset_parameters(self):
         for parameter in self.param_list:
-            stdv = 1. / math.sqrt(parameter.size(1))
-            parameter.data_uniform_(-stdv, stdv)
+            stdv = .1 / math.sqrt(parameter.size(1))
+            parameter.data.uniform_(-stdv, stdv)
 
     def forward(self, x):
-        out = torch.mm(self.ts[0], torch.mm(self.t0, x))
+        out = torch.matmul(torch.matmul(self.t0, x), self.ts[0])
 
         # computation of static graph structure convolution
-        out_s = out + torch.mm(self.ts[1], torch.mm(self.ws, x))
+        out_s = out + torch.matmul(torch.matmul(self.ws, x), self.ts[1])
         tk_prev = self.ws
-        tk = 2.*torch.mm(self.ws, self.ws) - self.t0
+        tk = 2.*torch.matmul(self.ws, self.ws) - self.t0
         for k in range(2, self.cs):
-            out_s = out_s + torch.mm(self.ts[k], torch.mm(tk, x))
-            tk = 2.*torch.mm(self.ws, tk) - tk_prev
+            out_s = out_s + torch.matmul(torch.matmul(tk, x), self.ts[k])
+            tk = 2.*torch.matmul(self.ws, tk) - tk_prev
 
         # computation of dynamical graph structure convolution
-        wd = torch.mm(x.T, torch.mm(self.wp, x))
-        out_d = out + torch.mm(self.td[1], torch.mm(self.wd, x))
+        wd = torch.matmul(x, torch.matmul(self.wp, torch.transpose(x, 1, 2)))
+        # normalize wd
+        wd = wd + torch.min(wd)
+        wd = wd / torch.max(wd) / self.num_nodes**2
+
+        out_d = out + torch.matmul(torch.matmul(wd, x), self.td[1])
         tk_prev = wd
-        tk = 2.*torch.mm(wd, wd) - self.t0
+        tk = 2.*torch.matmul(wd, wd) - self.t0
         for k in range(2, self.cd):
-            out_s = out_s + torch.mm(self.td[k], torch.mm(tk, x))
-            tk = 2.*torch.mm(wd, tk) - tk_prev
+            out_d = out_d + torch.matmul(torch.matmul(tk, x), self.td[k])
+            tk = 2.*torch.matmul(wd, tk) - tk_prev
 
         if self.act_func:
             out_s = self.act_func(out_s)

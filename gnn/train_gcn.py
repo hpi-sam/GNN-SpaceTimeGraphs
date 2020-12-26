@@ -1,7 +1,6 @@
 from __future__ import division
 from __future__ import print_function
 
-import time
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -11,7 +10,7 @@ import pickle
 from tqdm import tqdm
 
 from torch.utils.data import DataLoader
-from gnn.models import GCN
+from gnn.models import GCN, SLGCN
 from gnn.utils import normalize
 from gnn.dataset import TrafficDataset
 from gnn.argparser import parse_arguments
@@ -63,10 +62,19 @@ if __name__ == "__main__":
                             shuffle=True, num_workers=1)
 
     # Model and optimizer
-    model = GCN(nfeat=dataset.features_train.shape[2],
-                nhid=100,
-                nclass=1,
-                n=207, device=DEVICE)
+    if args.model == 'SLGCN':
+        model = SLGCN(nfeat=dataset.features_train.shape[2],
+                      nhid=100,
+                      nclass=1,
+                      N=adj.shape[0],
+                      device=DEVICE)
+    else:
+        model = GCN(nfeat=dataset.features_train.shape[2],
+                    nhid=100,
+                    nclass=1,
+                    N=adj.shape[0],
+                    device=DEVICE)
+
     optimizer = optim.Adam(model.parameters(),
                            lr=args.lr, weight_decay=args.weight_decay)
 
