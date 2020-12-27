@@ -2,6 +2,7 @@ import torch
 import math
 
 import torch.nn as nn
+from gnn.utils import generate_knn_ids
 from torch.nn.parameter import Parameter
 
 
@@ -87,6 +88,35 @@ class GlobalSLC(nn.Module):
 
         output = out_s + out_d
         return output
+
+
+class LocalSLC(nn.Module):
+    def __init__(self, cin, cout, num_nodes, g, dist, k=8, act_func=None):
+        super(LocalSLC, self).__init__()
+        self.cin = cin
+        self.cout = cout
+        self.num_nodes = num_nodes
+        self.dist = dist
+
+        # learnable parameters and functions
+        self.bs = Parameter(torch.randn(num_nodes, k))
+        self.ws = Parameter(torch.randn(k, cin, cout))
+        # TODO: implement dynamical component of local convolution
+        self.param_list = [self.bs, self.ws]
+        self.knn_ids = torch.tensor(generate_knn_ids(dist, k), device=torch.device('cuda:0'))  # (num_nodes, k)
+
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        for parameter in self.param_list:
+            stdv = .1 / math.sqrt(parameter.size(1))
+            parameter.data.uniform_(-stdv, stdv)
+
+    def forward(self, x, adj):
+        x = x[:, self.knn_ids]  # (batch_size, num_nodes, k, cin)
+        # x = (batch_size, num_nodes, k, cin) x (k, cin, cout) --> (num_nodes, cout)
+
+        return True
 
 
 class SLGRUCell(nn.Module):

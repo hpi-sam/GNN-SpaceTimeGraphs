@@ -13,6 +13,7 @@ import pickle
 # eg: def get_adjacency_matrix(distance_df, sensor_ids, dataset='PEMS-Bay'):
 # normalized_k = normalization_k(dataset)
 
+
 def normalization_k(dataset='PEMS-Bay'):
     """ Returns the `normalized_k` based on the dataset 
     :param dataset: dataset being used
@@ -20,6 +21,7 @@ def normalization_k(dataset='PEMS-Bay'):
     """
     normalization = {'PEMS-Bay':0.5, 'METR-LA':0.1}
     return normalization[dataset]
+
 
 def get_adjacency_matrix(distance_df, sensor_ids, normalized_k=0.1):
     """ Generates an adjacency matrix based on the distance of the sensors and the normalization factor k.
@@ -57,13 +59,13 @@ def get_adjacency_matrix(distance_df, sensor_ids, normalized_k=0.1):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--sensor_ids_filename', type=str, default='data/graph_sensor_ids.txt',
+    parser.add_argument('--sensor_ids_filename', type=str, default='data/metr_la/graph_sensor_ids_la.txt',
                         help='File containing sensor ids separated by comma.')
-    parser.add_argument('--distances_filename', type=str, default='data/distances_la_2012.csv',
+    parser.add_argument('--distances_filename', type=str, default='data/metr_la/distances_la_2012.csv',
                         help='CSV file containing sensor distances with three columns: [from, to, distance].')
     parser.add_argument('--normalized_k', type=float, default=0.1,
                         help='Entries that become lower than normalized_k after normalization are set to zero for sparsity.')
-    parser.add_argument('--output_pkl_filename', type=str, default='data/sensor_graph/adj_mat.pkl',
+    parser.add_argument('--output_pkl_filename', type=str, default='data/metr_la/sensor_graph/adj_mat.pkl',
                         help='Path of the output file.')
     args = parser.parse_args()
 

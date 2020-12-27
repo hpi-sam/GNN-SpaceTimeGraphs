@@ -8,6 +8,7 @@ import numpy as np
 import os
 import pandas as pd
 import scipy.sparse as sp
+import torch
 
 
 def generate_graph_seq2seq_io_data(
@@ -167,6 +168,10 @@ def normalize(mx):
     r_mat_inv = sp.diags(r_inv)
     mx = r_mat_inv.dot(mx)
     return mx
+
+
+def generate_knn_ids(dist, k):
+    return torch.argsort(dist, axis=-1)[:, -k-1:-1]
 
 
 def load_data(filename):
