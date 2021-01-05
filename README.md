@@ -1,4 +1,4 @@
-# GNN-TiborMaxTiago
+# GNN-SpaceTimeGraphs
 
 ## Abstract
 For modern transportation systems such as highway- or railway networks, traffic
