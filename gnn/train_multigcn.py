@@ -69,7 +69,8 @@ if __name__ == "__main__":
     model = MultiTempGCN(nfeat=dataset.features_train.shape[2],
                          nhid=100,
                          nclass=1,
-                         n=207, device=DEVICE)
+                         n=dataset.features_train.shape[1],
+                         device=DEVICE)
 
     optimizer = optim.Adam(model.parameters(),
                            lr=args.lr, weight_decay=args.weight_decay)

@@ -188,10 +188,16 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--output_dir", type=str, default="data/", help="Output directory."
+        "--output_dir",
+        type=str,
+        default="data/",
+        help="Output directory."
     )
     parser.add_argument(
-        "--add_time_in_day", type=int, default=1, help="Output directory."
+        "--add_time_in_day",
+        type=int,
+        default=1,
+        help="Output directory."
     )
     parser.add_argument(
         "--traffic_df_filename",
