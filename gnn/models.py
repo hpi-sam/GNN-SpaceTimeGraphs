@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import numpy as np
 
 from torch.nn.parameter import Parameter
-from gnn.layers import SLConv, SLGRUCell, GlobalSLC
+from gnn.layers import SLConv, SLGRUCell, GlobalSLC, LocalSLC
 
 
 class GCN(nn.Module):
@@ -73,18 +73,22 @@ class GCRNN(nn.Module):
 
 
 class SLGCN(nn.Module):
-    def __init__(self, nfeat, nhid, nclass, N, nhid_multipliers=(1, 2), device=None):
+    def __init__(self, adj, nfeat, nhid, nclass, N, nhid_multipliers=(1, 2), device=None):
         super(SLGCN, self).__init__()
+        self.adj = adj
         in_dim = nfeat
-        self.layer_list = np.zeros_like(nhid_multipliers, dtype='object_')
+        self.g_layer_list = np.zeros_like(nhid_multipliers, dtype='object_')
+        self.l_layer_list = np.zeros_like(nhid_multipliers, dtype='object_')
         for idx, layer_multiplier in enumerate(nhid_multipliers):
             out_dim = nhid * layer_multiplier
-            self.layer_list[idx] = GlobalSLC(in_dim, out_dim, N, act_func=F.leaky_relu).to(device)
+            self.g_layer_list[idx] = GlobalSLC(in_dim, out_dim, N, act_func=F.leaky_relu).to(device)
+            self.l_layer_list[idx] = LocalSLC(in_dim, out_dim, N, act_func=F.leaky_relu).to(device)
             in_dim = out_dim
-        self.gc_last = GlobalSLC(in_dim, nclass, N).to(device)
+        self.g_last = GlobalSLC(in_dim, nclass, N).to(device)
+        self.l_last = LocalSLC(in_dim, nclass, N).to(device)
 
-    def forward(self, x, adj):
-        for layer in self.layer_list:
-            x = layer(x)
-        x = self.gc_last(x)
+    def forward(self, x):
+        for g_layer, l_layer in zip(self.g_layer_list, self.l_layer_list):
+            x = g_layer(x) + l_layer(x, self.adj)
+        x = self.g_last(x) + self.l_last(x, self.adj)
         return x
