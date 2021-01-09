@@ -26,7 +26,7 @@ def train(epochs, model, optimizer, dataloader):
             optimizer.zero_grad()
             x = torch.tensor(sample_batched['features'], device=DEVICE, dtype=torch.float32)
             y = torch.tensor(sample_batched['labels'], device=DEVICE, dtype=torch.float32)
-            output = model(x, adj)
+            output = model(x)
             loss_train = F.mse_loss(output, y)
             loss_train.backward()
             optimizer.step()
@@ -62,7 +62,8 @@ if __name__ == "__main__":
 
     # Model and optimizer
     if args.model == 'SLGCN':
-        model = SLGCN(nfeat=dataset.features_train.shape[2],
+        model = SLGCN(adj,
+                      nfeat=dataset.features_train.shape[2],
                       nhid=100,
                       nclass=1,
                       N=dataset.features_train.shape[1],

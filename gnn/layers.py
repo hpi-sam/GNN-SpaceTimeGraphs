@@ -44,14 +44,14 @@ class SLConv(nn.Module):
 class GlobalSLC(nn.Module):
     def __init__(self, cin, cout, N, cs=6, cd=6, act_func=None):
         super(GlobalSLC, self).__init__()
-        self.cin = cin #ok
-        self.cout = cout #ok
-        self.num_nodes = N #ok
-        self.cs = cs #ok
-        self.cd = cd #ok
+        self.cin = cin
+        self.cout = cout
+        self.num_nodes = N
+        self.cs = cs
+        self.cd = cd
 
         # convolution parameters
-        self.ws = Parameter(torch.rand(self.num_nodes, self.num_nodes)) #ok
+        self.ws = Parameter(torch.rand(self.num_nodes, self.num_nodes))
         self.wp = Parameter(torch.rand(cin, cin))
         self.ts = Parameter(torch.rand((cs, cin, cout)))
         self.td = Parameter(torch.rand((cd, cin, cout)))
@@ -100,16 +100,17 @@ class GlobalSLC(nn.Module):
 
 
 class LocalSLC(nn.Module):
-    def __init__(self, cin, cout, num_nodes, g, dist, k=8, act_func=None):
+    def __init__(self, cin, cout, N, g=None, k=8, act_func=None):
         super(LocalSLC, self).__init__()
         self.cin = cin
         self.cout = cout
-        self.num_nodes = num_nodes
-        self.dist = dist
+        self.N = N
+        self.k = k
+        self.act_func = act_func
 
         # learnable parameters and functions
-        self.bs = Parameter(torch.randn(num_nodes, k))
-        self.ws = Parameter(torch.randn(k, cin, cout))
+        self.bs = Parameter(torch.randn(N, self.k))
+        self.ws = Parameter(torch.randn(self.k, cin, cout))
         # TODO: implement dynamical component of local convolution
         self.param_list = [self.bs, self.ws]
         self.knn_ids = torch.tensor(generate_knn_ids(dist, k), device=DEVICE)  # (num_nodes, k)
@@ -122,10 +123,14 @@ class LocalSLC(nn.Module):
             parameter.data.uniform_(-stdv, stdv)
 
     def forward(self, x, adj):
-        x = x[:, self.knn_ids]  # (batch_size, num_nodes, k, cin)
-        # x = (batch_size, num_nodes, k, cin) x (k, cin, cout) --> (num_nodes, cout)
-
-        return True
+        knn_ids = generate_knn_ids(adj, self.k)
+        x = x[:, knn_ids, :]  # (batch_size, n, k, cin)
+        ws = self.ws  # (k, cin, cout)
+        bs = self.bs  # (n, k)
+        y = torch.einsum("nk,kio,bnki->bno", bs, ws, x)
+        if self.act_func:
+            y = self.act_func(y)
+        return y
 
 
 class SLGRUCell(nn.Module):
