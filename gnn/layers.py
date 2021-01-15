@@ -3,8 +3,16 @@ import math
 
 import torch.nn as nn
 from gnn.utils import generate_knn_ids
+from gnn.argparser import parse_arguments
 from torch.nn.parameter import Parameter
 
+parser = parse_arguments()
+args = parser.parse_args()
+
+if args.gpu:
+    DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+else:
+    DEVICE = torch.device("cpu")
 
 class SLConv(nn.Module):
     def __init__(self, in_chanels, out_chanels, act_func=None):
@@ -49,7 +57,7 @@ class GlobalSLC(nn.Module):
         self.td = Parameter(torch.rand((cd, cin, cout)))
         self.param_list = [self.ws, self.wp, self.ts, self.td]
 
-        self.t0 = torch.eye(self.num_nodes, self.num_nodes, device=torch.device('cuda:0'))
+        self.t0 = torch.eye(self.num_nodes, self.num_nodes, device=DEVICE)
         self.act_func = act_func
         self.reset_parameters()
 
@@ -70,8 +78,9 @@ class GlobalSLC(nn.Module):
             tk = 2.*torch.matmul(self.ws, tk) - tk_prev
 
         # computation of dynamical graph structure convolution
+        # QUESTION: Why isnt it implemented as x^T W_p x as in the paper?
         wd = torch.matmul(x, torch.matmul(self.wp, torch.transpose(x, 1, 2)))
-        # normalize wd
+        # normalize wd -> to get rid of exploding gradients
         wd = wd + torch.min(wd)
         wd = wd / torch.max(wd) / self.num_nodes**2
 
@@ -91,19 +100,20 @@ class GlobalSLC(nn.Module):
 
 
 class LocalSLC(nn.Module):
-    def __init__(self, cin, cout, num_nodes, g, dist, k=8, act_func=None):
+    def __init__(self, cin, cout, N, g=None, k=8, act_func=None):
         super(LocalSLC, self).__init__()
         self.cin = cin
         self.cout = cout
-        self.num_nodes = num_nodes
-        self.dist = dist
+        self.N = N
+        self.k = k
+        self.act_func = act_func
 
         # learnable parameters and functions
-        self.bs = Parameter(torch.randn(num_nodes, k))
-        self.ws = Parameter(torch.randn(k, cin, cout))
+        self.bs = Parameter(torch.randn(N, self.k))
+        self.ws = Parameter(torch.randn(self.k, cin, cout))
         # TODO: implement dynamical component of local convolution
         self.param_list = [self.bs, self.ws]
-        self.knn_ids = torch.tensor(generate_knn_ids(dist, k), device=torch.device('cuda:0'))  # (num_nodes, k)
+        self.knn_ids = torch.tensor(generate_knn_ids(dist, k), device=DEVICE)  # (num_nodes, k)
 
         self.reset_parameters()
 
@@ -113,10 +123,14 @@ class LocalSLC(nn.Module):
             parameter.data.uniform_(-stdv, stdv)
 
     def forward(self, x, adj):
-        x = x[:, self.knn_ids]  # (batch_size, num_nodes, k, cin)
-        # x = (batch_size, num_nodes, k, cin) x (k, cin, cout) --> (num_nodes, cout)
-
-        return True
+        knn_ids = generate_knn_ids(adj, self.k)
+        x = x[:, knn_ids, :]  # (batch_size, n, k, cin)
+        ws = self.ws  # (k, cin, cout)
+        bs = self.bs  # (n, k)
+        y = torch.einsum("nk,kio,bnki->bno", bs, ws, x)
+        if self.act_func:
+            y = self.act_func(y)
+        return y
 
 
 class SLGRUCell(nn.Module):

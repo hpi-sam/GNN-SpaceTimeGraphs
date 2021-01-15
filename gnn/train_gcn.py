@@ -26,7 +26,7 @@ def train(epochs, model, optimizer, dataloader):
             optimizer.zero_grad()
             x = torch.tensor(sample_batched['features'], device=DEVICE, dtype=torch.float32)
             y = torch.tensor(sample_batched['labels'], device=DEVICE, dtype=torch.float32)
-            output = model(x, adj)
+            output = model(x)
             loss_train = F.mse_loss(output, y)
             loss_train.backward()
             optimizer.step()
@@ -53,7 +53,6 @@ if __name__ == "__main__":
     with open(place_path, "rb") as f:
         _, _, adj = pickle.load(f, encoding='latin-1')
     adj = torch.tensor(normalize(adj), device=DEVICE)
-
     # Dataset
     dataset = TrafficDataset(args)
 
@@ -63,16 +62,17 @@ if __name__ == "__main__":
 
     # Model and optimizer
     if args.model == 'SLGCN':
-        model = SLGCN(nfeat=dataset.features_train.shape[2],
+        model = SLGCN(adj,
+                      nfeat=dataset.features_train.shape[2],
                       nhid=100,
                       nclass=1,
-                      N=adj.shape[0],
+                      N=dataset.features_train.shape[1],
                       device=DEVICE)
     else:
         model = GCN(nfeat=dataset.features_train.shape[2],
                     nhid=100,
                     nclass=1,
-                    N=adj.shape[0],
+                    N=dataset.features_train.shape[1],
                     device=DEVICE)
 
     optimizer = optim.Adam(model.parameters(),
@@ -89,4 +89,3 @@ if __name__ == "__main__":
     torch.save(model.state_dict(), filepath)
     hist_loss = train(args.n_epochs, model, optimizer, dataloader)
     np.save(f"losses_on_{args.n_epochs}_epochs", hist_loss)
-

@@ -94,7 +94,7 @@ if __name__ == "__main__":
                             shuffle=True, num_workers=1)
 
     # Model and optimizer
-    num_nodes = adj.shape[0]
+    num_nodes = dataset.features_train.shape[1]
     input_dim = 2
     num_units = 1000
     hidden_state_size = 264
