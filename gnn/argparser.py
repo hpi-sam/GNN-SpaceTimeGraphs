@@ -23,7 +23,7 @@ def parse_arguments():
     )
     parser.add_argument(
         '--toy_data', action='store_true', help="Uses the `--train_file` data with all nodes but only 2.5%"
-                                                 "of the total of timestamps. Use it for debugging purposes"
+                                                "of the total of timestamps. Use it for debugging purposes"
     )
     parser.add_argument(
         '--lr', type=float, default=LEARNING_RATE, help="Learning rate for training"

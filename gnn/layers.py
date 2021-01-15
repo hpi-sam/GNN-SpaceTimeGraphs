@@ -14,6 +14,7 @@ if args.gpu:
 else:
     DEVICE = torch.device("cpu")
 
+
 class SLConv(nn.Module):
     def __init__(self, in_chanels, out_chanels, act_func=None):
         super(SLConv, self).__init__()
@@ -98,13 +99,15 @@ class GlobalSLC(nn.Module):
         output = out_s + out_d
         return output
 
+
 class LocalSLC(nn.Module):
-    def __init__(self, cin, cout, N,  knn_ids, g=None, act_func=None):
+    def __init__(self, adj, cin, cout, N, k, g=None, act_func=None):
         super(LocalSLC, self).__init__()
+        self.adj = adj
         self.cin = cin
         self.cout = cout
         self.N = N
-        self.k = len(knn_ids)
+        self.k = k
         self.act_func = act_func
 
         # learnable parameters and functions
@@ -112,7 +115,7 @@ class LocalSLC(nn.Module):
         self.ws = Parameter(torch.randn(self.k, cin, cout))
         # TODO: implement dynamical component of local convolution
         self.param_list = [self.bs, self.ws]
-        self.knn_ids = knn_ids  # (num_nodes, k)
+        self.knn_ids = generate_knn_ids(self.adj, self.k)
 
         self.reset_parameters()
 
@@ -121,9 +124,8 @@ class LocalSLC(nn.Module):
             stdv = .1 / math.sqrt(parameter.size(1))
             parameter.data.uniform_(-stdv, stdv)
 
-    def forward(self, x, adj):
-        knn_ids = generate_knn_ids(adj, self.k)
-        x = x[:, knn_ids, :]  # (batch_size, n, k, cin)
+    def forward(self, x):
+        x = x[:, self.knn_ids, :]  # (batch_size, n, k, cin)
         ws = self.ws  # (k, cin, cout)
         bs = self.bs  # (n, k)
         y = torch.einsum("nk,kio,bnki->bno", bs, ws, x)

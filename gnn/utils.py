@@ -89,14 +89,14 @@ def generate_train_val_test_inst_to_inst(args):
     num_val = num_samples - num_test - num_train
 
     # train
-    x_train, y_train = x[:num_train], y[:num_train]
+    x_train_iti, y_train_iti = x[:num_train], y[:num_train]
     # val
-    x_val, y_val = (
+    x_val_iti, y_val_iti = (
         x[num_train: num_train + num_val],
         y[num_train: num_train + num_val],
     )
     # test
-    x_test, y_test = x[-num_test:], y[-num_test:]
+    x_test_iti, y_test_iti = x[-num_test:], y[-num_test:]
 
     for cat in ["train_iti", "val_iti", "test_iti"]:
         _x, _y = locals()["x_" + cat], locals()["y_" + cat]
@@ -139,14 +139,14 @@ def generate_train_val_test(args):
     num_val = num_samples - num_test - num_train
 
     # train
-    x_train, y_train = x[:num_train], y[:num_train]
+    x_train_sts, y_train_sts = x[:num_train], y[:num_train]
     # val
-    x_val, y_val = (
+    x_val_sts, y_val_sts = (
         x[num_train: num_train + num_val],
         y[num_train: num_train + num_val],
     )
     # test
-    x_test, y_test = x[-num_test:], y[-num_test:]
+    x_test_sts, y_test_sts = x[-num_test:], y[-num_test:]
 
     for cat in ["train_sts", "val_sts", "test_sts"]:
         _x, _y = locals()["x_" + cat], locals()["y_" + cat]
@@ -182,7 +182,7 @@ def load_data(filename):
 
 def main(args):
     print("Generating training data")
-    if args.sts == True:
+    if args.sts:
         generate_train_val_test(args)
     else:
         generate_train_val_test_inst_to_inst(args)
@@ -203,7 +203,7 @@ if __name__ == "__main__":
         help="Output directory."
     )
     parser.add_argument(
-        "--sts", type=bool, default=True, help="True to generate Seq_to_seq data and false to create Inst_to_inst"
+        "--sts", type=bool, default=False, help="True to generate Seq_to_seq data and false to create Inst_to_inst"
     )
     parser.add_argument(
         "--traffic_df_filename",

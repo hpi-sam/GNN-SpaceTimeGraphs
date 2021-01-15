@@ -36,7 +36,8 @@ class MultiTempGCN(nn.Module):
             self.gcn_blocks[idx] = self.gcn_block = GCN(nfeat=nfeat,
                                                         nhid=nhid,
                                                         nclass=nclass,
-                                                        n=n, device=device)
+                                                        n=n,
+                                                        device=device)
         self.linear = torch.nn.Linear(len(time_hops), nclass)
 
     def forward(self, x, adj):
@@ -74,23 +75,22 @@ class GCRNN(nn.Module):
 
 
 class SLGCN(nn.Module):
-    def __init__(self, adj, nfeat, nhid, nclass, N, nhid_multipliers=(1, 2), k = 8, device=None):
+    def __init__(self, adj, nfeat, nhid, nclass, N, nhid_multipliers=(1, 2), k=8, device=None):
         super(SLGCN, self).__init__()
         self.adj = adj
         in_dim = nfeat
-        self.knn_ids = torch.tensor(generate_knn_ids(adj, k), device=device)
         self.g_layer_list = np.zeros_like(nhid_multipliers, dtype='object_')
         self.l_layer_list = np.zeros_like(nhid_multipliers, dtype='object_')
         for idx, layer_multiplier in enumerate(nhid_multipliers):
             out_dim = nhid * layer_multiplier
-            self.g_layer_list[idx] = GlobalSLC(in_dim, out_dim, N, self.knn_ids, act_func=F.leaky_relu).to(device)
-            self.l_layer_list[idx] = LocalSLC(in_dim, out_dim, N, self.knn_ids, act_func=F.leaky_relu).to(device)
+            self.g_layer_list[idx] = GlobalSLC(in_dim, out_dim, N, act_func=F.leaky_relu).to(device)
+            self.l_layer_list[idx] = LocalSLC(adj, in_dim, out_dim, N, k, act_func=F.leaky_relu).to(device)
             in_dim = out_dim
         self.g_last = GlobalSLC(in_dim, nclass, N).to(device)
-        self.l_last = LocalSLC(in_dim, nclass, N).to(device)
+        self.l_last = LocalSLC(adj, in_dim, nclass, N, k).to(device)
 
     def forward(self, x):
         for g_layer, l_layer in zip(self.g_layer_list, self.l_layer_list):
-            x = g_layer(x) + l_layer(x, self.adj)
-        x = self.g_last(x) + self.l_last(x, self.adj)
+            x = g_layer(x) + l_layer(x)
+        x = self.g_last(x) + self.l_last(x)
         return x
