@@ -48,4 +48,7 @@ def parse_arguments():
     parser.add_argument(
         '--model', type=str, default="SLGCN", help="The name of the model that should be used"
     )
+    parser.add_argument(
+        '--forecast_horizon', type=int, default=1, help="number of steps to predict into the future"
+    )
     return parser

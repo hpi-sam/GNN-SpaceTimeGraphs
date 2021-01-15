@@ -32,8 +32,8 @@ def train(epochs, model, optimizer, dataloader):
             optimizer.zero_grad()
             x = torch.tensor(sample_batched['features'], device=DEVICE, dtype=torch.float32)
             y = torch.tensor(sample_batched['labels'], device=DEVICE, dtype=torch.float32)
-            output = model(x).squeeze()
-            loss_train = F.mse_loss(output, y[:, -1, :, 0])
+            output = model(x)
+            loss_train = F.mse_loss(output, y)
             loss_train.backward()
             optimizer.step()
             losses.append(loss_train.item())
@@ -71,6 +71,9 @@ if __name__ == "__main__":
 
     parser.add_argument(
         '--gpu', action='store_true', help="Try to enforce the usage of cuda, but it will use CPU if it fails"
+    )
+    parser.add_argument(
+        '--forecast_horizon', type=int, default=1, help="number of steps to predict into the future"
     )
     args = parser.parse_args()
 

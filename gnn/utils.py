@@ -47,7 +47,7 @@ def generate_graph_seq2seq_io_data(
     max_t = abs(num_samples - abs(max(y_offsets)))  # Exclusive
     for t in range(min_t, max_t):
         x_t = data[t + x_offsets, ...]
-        y_t = data[t + y_offsets, ...]
+        y_t = data[t + y_offsets, ..., :1]
         x.append(x_t)
         y.append(y_t)
     x = np.stack(x, axis=0)
@@ -55,7 +55,7 @@ def generate_graph_seq2seq_io_data(
     return x, y
 
 
-def generate_train_val_test_one_step(args):
+def generate_train_val_test_inst_to_inst(args):
     df = pd.read_hdf(args.traffic_df_filename)
     num_samples, num_nodes = df.shape
     data = np.expand_dims(df.values, axis=-1)
@@ -98,7 +98,7 @@ def generate_train_val_test_one_step(args):
     # test
     x_test, y_test = x[-num_test:], y[-num_test:]
 
-    for cat in ["train", "val", "test"]:
+    for cat in ["train_iti", "val_iti", "test_iti"]:
         _x, _y = locals()["x_" + cat], locals()["y_" + cat]
         print(cat, "x: ", _x.shape, "y:", _y.shape)
         np.savez_compressed(
@@ -148,7 +148,7 @@ def generate_train_val_test(args):
     # test
     x_test, y_test = x[-num_test:], y[-num_test:]
 
-    for cat in ["train", "val", "test"]:
+    for cat in ["train_sts", "val_sts", "test_sts"]:
         _x, _y = locals()["x_" + cat], locals()["y_" + cat]
         print(cat, "x: ", _x.shape, "y:", _y.shape)
         np.savez_compressed(
@@ -182,7 +182,10 @@ def load_data(filename):
 
 def main(args):
     print("Generating training data")
-    generate_train_val_test_one_step(args)
+    if args.sts == True:
+        generate_train_val_test(args)
+    else:
+        generate_train_val_test_inst_to_inst(args)
 
 
 if __name__ == "__main__":
@@ -192,6 +195,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--add_time_in_day", type=int, default=1, help="Output directory."
+    )
+    parser.add_argument(
+        "--sts", type=bool, default=True, help="True to generate Seq_to_seq data and false to create Inst_to_inst"
     )
     parser.add_argument(
         "--traffic_df_filename",
