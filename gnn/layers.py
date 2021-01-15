@@ -98,14 +98,13 @@ class GlobalSLC(nn.Module):
         output = out_s + out_d
         return output
 
-
 class LocalSLC(nn.Module):
-    def __init__(self, cin, cout, N, g=None, k=8, act_func=None):
+    def __init__(self, cin, cout, N,  knn_ids, g=None, act_func=None):
         super(LocalSLC, self).__init__()
         self.cin = cin
         self.cout = cout
         self.N = N
-        self.k = k
+        self.k = len(knn_ids)
         self.act_func = act_func
 
         # learnable parameters and functions
@@ -113,7 +112,7 @@ class LocalSLC(nn.Module):
         self.ws = Parameter(torch.randn(self.k, cin, cout))
         # TODO: implement dynamical component of local convolution
         self.param_list = [self.bs, self.ws]
-        self.knn_ids = torch.tensor(generate_knn_ids(dist, k), device=DEVICE)  # (num_nodes, k)
+        self.knn_ids = knn_ids  # (num_nodes, k)
 
         self.reset_parameters()
 
