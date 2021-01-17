@@ -113,6 +113,8 @@ class LocalSLC(nn.Module):
         # learnable parameters and functions
         self.bs = Parameter(torch.randn(N, self.k))
         self.ws = Parameter(torch.randn(self.k, cin, cout))
+        self.wd = Parameter(torch.randn(self.k, cin, cout))
+        self.nu = Parameter(torch.randn(cin))
         # TODO: implement dynamical component of local convolution
         self.param_list = [self.bs, self.ws]
         self.knn_ids = generate_knn_ids(self.adj, self.k)
@@ -124,11 +126,16 @@ class LocalSLC(nn.Module):
             stdv = .1 / math.sqrt(parameter.size(1))
             parameter.data.uniform_(-stdv, stdv)
 
+    def dynamical_part(self, x):
+        bd = torch.matmul(x, self.nu)
+        return torch.einsum("bnk,kio,bnki->bno", bd, self.wd, x)
+
+    def static_part(self, x):
+        return torch.einsum("nk,kio,bnki->bno", self.bs, self.ws, x)
+
     def forward(self, x):
         x = x[:, self.knn_ids, :]  # (batch_size, n, k, cin)
-        ws = self.ws  # (k, cin, cout)
-        bs = self.bs  # (n, k)
-        y = torch.einsum("nk,kio,bnki->bno", bs, ws, x)
+        y = self.static_part(x) + self.dynamical_part(x)
         if self.act_func:
             y = self.act_func(y)
         return y
