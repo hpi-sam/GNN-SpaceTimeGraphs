@@ -1,4 +1,4 @@
-import argparse
+import configargparse
 
 # DEFAULT VALUES FOR TRAINING
 BATCH_SIZE = 32
@@ -7,14 +7,27 @@ WEIGHT_DECAY = 0.95
 EPOCHS = 100
 
 # DEFAULT VALUES FOR FILES AND FOLDERS
+CONFIG_FILEPATH = "../configs/config.yml"
 TRAIN_FILE = "./data/metr_la/train.npz"
 TEST_FILE = "./data/metr_la/test.npz"
 MODEL_SAVE_PATH = "./saved_models/"
 ADJACENCY_PKL = "metr_la/adj_mx_la.pkl"
 
-
 def parse_arguments():
-    parser = argparse.ArgumentParser()
+    """
+    Parses arguments passed to the command line.
+    :return: Argument Parser containing all arguments passed to the terminal.
+    :rtype: argparse.ArgumentParser
+    """
+    parser = configargparse.ArgumentParser(
+        default_config_files=[CONFIG_FILEPATH],
+        config_file_parser_class=configargparse.YAMLConfigFileParser
+    )
+    parser.add(
+        '-c', '--my-config', is_config_file=True, help="Use config file to set arguments."
+                                                       "You can add new to override the"
+                                                       "the config file"
+    )
     parser.add_argument(
         "--train_file", type=str, default=TRAIN_FILE, help="File containing the training data"
     )
@@ -23,13 +36,13 @@ def parse_arguments():
     )
     parser.add_argument(
         '--toy_data', action='store_true', help="Uses the `--train_file` data with all nodes but only 2.5%"
-                                                "of the total of timestamps. Use it for debugging purposes"
+                                                "timestamps. Use it for debugging purposes"
     )
     parser.add_argument(
         '--lr', type=float, default=LEARNING_RATE, help="Learning rate for training"
     )
     parser.add_argument(
-        '--weight_decay', type=int, default=WEIGHT_DECAY, help="Batch size for training"
+        '--weight_decay', type=float, default=WEIGHT_DECAY, help="Batch size for training"
     )
     parser.add_argument(
         '--batch_size', type=int, default=BATCH_SIZE, help="Batch size for training"
@@ -47,7 +60,7 @@ def parse_arguments():
         '--pickled_files', type=str, default=ADJACENCY_PKL, help="File containing the adjacency matrix"
     )
     parser.add_argument(
-        '--gpu', action='store_true', help="Try to enforce the usage of cuda, but it will use CPU if it fails"
+        '--gpu', action='store_true', help="Try to enforce CUDA usage, but it will use CPU if it fails"
     )
     parser.add_argument(
         '--model', type=str, default="SLGCN", help="The name of the model that should be used"
@@ -56,3 +69,13 @@ def parse_arguments():
         '--forecast_horizon', type=int, default=1, help="number of steps to predict into the future"
     )
     return parser
+
+
+
+if __name__ == "__main__":
+    parser = parse_arguments()
+    options = parser.parse_args()
+    print(options)
+    # print(parser.format_help())
+    print("----------")
+    print(parser.format_values())

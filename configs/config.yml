@@ -1,0 +1,13 @@
+train_file: "./data/metr_la/train.npz"
+test_file: "./data/metr_la/test.npz"
+forecast_horizon: 1
+toy_data: True
+lr: 0.015
+weight_decay: 0.95
+batch_size: 33
+save_model: True
+model_name: model_001
+n_epochs: 1
+pickled_files:  "metr_la/adj_mx_la.pkl"
+model: "GCN"
+gpu: False
