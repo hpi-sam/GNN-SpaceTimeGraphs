@@ -50,14 +50,8 @@ if __name__ == "__main__":
     dataset_val = TrafficDataset(args, split='val')
 
     # use data loader
-    dataloader_train = DataLoader(dataset_train,
-                                  batch_size=args.batch_size,
-                                  shuffle=True,
-                                  num_workers=1)
-    dataloader_val = DataLoader(dataset_val,
-                                batch_size=args.batch_size,
-                                shuffle=False,
-                                num_workers=1)
+    dataloader_train = DataLoader(dataset_train, batch_size=args.batch_size, shuffle=True, num_workers=1)
+    dataloader_val = DataLoader(dataset_val, batch_size=args.batch_size, shuffle=False, num_workers=1)
 
     # load adjacency matrix
     adj = load_adjacency_matrix(args, DEVICE)

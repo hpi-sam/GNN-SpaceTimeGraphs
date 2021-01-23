@@ -157,9 +157,7 @@ class SLGRUCell(nn.Module):
         self.gc3 = SLConv(input_dim + hidden_state_size, hidden_state_size)
 
     def forward(self, inputs, hx, S):
-        x = torch.cat(
-            [inputs, hx],
-            dim=2)  # (batch_size, num_nodes, num_features+num_hidden_features)
+        x = torch.cat([inputs, hx], dim=2)  # (batch_size, num_nodes, num_features+num_hidden_features)
         u = torch.sigmoid(self.gc1(x, self.adj, S))
         r = torch.sigmoid(self.gc2(x, self.adj, S))
         x = torch.cat([inputs, r * hx], dim=2)
