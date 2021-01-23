@@ -4,15 +4,17 @@ import torch
 
 
 class TrafficDataset(Dataset):
-    def __init__(self, args):
-        self.dataset_flag = {'train': 0, 'test': 0, 'val': 0}
-        # TODO: refactor var name train_file -> source_file
-        if args.train_file is not None:
-            self.dataset_flag['train'] = 1
-            self.features_train, self.labels_train = load_data(args.train_file)
-            # forecast_horizon: number of time-steps of 5 Minute to intervals to predict in the future; 3 ~ 15 Min
-            if args.forecast_horizon >= 1 and len(self.labels_train.shape) == 4:
-                self.labels_train = self.labels_train[:, args.forecast_horizon - 1, :, :]
+    def __init__(self, args, split='train'):
+        if split == 'train':
+            source_file = args.train_file
+        elif split == 'val':
+            source_file = args.val_file
+        else:
+            source_file = args.test_file
+        self.features_train, self.labels_train = load_data(source_file)
+        # forecast_horizon: number of time-steps of 5 Minute to intervals to predict in the future; 3 ~ 15 Min
+        if args.forecast_horizon >= 1 and len(self.labels_train.shape) == 4:
+            self.labels_train = self.labels_train[:, args.forecast_horizon - 1, :, :]
         # create the toy data for only 5 nodes
         if args.toy_data: 
             self.features_train = self.features_train[:int(0.025*self.features_train.shape[0]), :, :]

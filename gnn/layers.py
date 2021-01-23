@@ -135,7 +135,7 @@ class LocalSLC(nn.Module):
 
     def forward(self, x):
         x = x[:, self.knn_ids, :]  # (batch_size, n, k, cin)
-        y = self.static_part(x) + self.dynamical_part(x)
+        y = self.static_part(x) #+ self.dynamical_part(x)
         if self.act_func:
             y = self.act_func(y)
         return y

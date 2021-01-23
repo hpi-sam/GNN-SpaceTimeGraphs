@@ -10,6 +10,7 @@ EPOCHS = 100
 CONFIG_FILEPATH = "../configs/config.yml"
 TRAIN_FILE = "./data/metr_la/train.npz"
 TEST_FILE = "./data/metr_la/test.npz"
+VAL_FILE = "./data/metr_la/val.npz"
 MODEL_SAVE_PATH = "./saved_models/"
 ADJACENCY_PKL = "metr_la/adj_mx_la.pkl"
 
@@ -34,6 +35,9 @@ def parse_arguments():
     )
     parser.add_argument(
         "--test_file", type=str, default=TEST_FILE, help="File containing the testing data"
+    )
+    parser.add_argument(
+        "--val_file", type=str, default=VAL_FILE, help="File containing the validation data"
     )
     parser.add_argument(
         '--toy_data', action='store_true', help="Uses the `--train_file` data with all nodes but only 2.5%"

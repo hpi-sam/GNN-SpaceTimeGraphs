@@ -1,5 +1,6 @@
 train_file: "./data/metr_la/train_iti.npz"
 test_file: "./data/metr_la/test_iti.npz"
+val_file: "./data/metr_la/val_iti.npz"
 forecast_horizon: 1
 toy_data: False
 lr: 0.01

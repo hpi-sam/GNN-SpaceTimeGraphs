@@ -13,26 +13,22 @@ from gnn.dataset import TrafficDataset
 from gnn.argparser import parse_arguments
 
 
-def train(epochs, model, optimizer, dataloader):
-    hist_loss = []
-    for epoch in range(epochs):
-        bar = tqdm(dataloader)
-        losses = []
-        for sample_batched in bar:
-            model.train()
-            optimizer.zero_grad()
-            x = torch.tensor(sample_batched['features'], device=DEVICE, dtype=torch.float32)
-            y = torch.tensor(sample_batched['labels'], device=DEVICE, dtype=torch.float32)
-            output = model(x)
-            loss_train = F.mse_loss(output, y)
-            loss_train.backward()
+def run_epoch(model, optimizer, dataloader, training=True):
+    bar = tqdm(dataloader)
+    losses = []
+    for sample_batched in bar:
+        model.train()
+        optimizer.zero_grad()
+        x = torch.tensor(sample_batched['features'], device=DEVICE, dtype=torch.float32)
+        y = torch.tensor(sample_batched['labels'], device=DEVICE, dtype=torch.float32)
+        output = model(x)
+        loss = F.mse_loss(output, y)
+        if training:
+            loss.backward()
             optimizer.step()
-            losses.append(loss_train.item())
-            bar.set_description('epoch: {}, loss_train: {:.4f}'.format(epoch + 1, loss_train.item()))
-        mean_loss = np.mean(losses)
-        hist_loss.append(mean_loss)
-        print('mean loss over batch: {:.4f}'.format(mean_loss))
-    return hist_loss
+        losses.append(loss.item())
+        bar.set_description('epoch: {}, loss: {:.4f}'.format(epoch + 1, loss.item()))
+    return np.mean(losses)
 
 
 if __name__ == "__main__":
@@ -49,29 +45,32 @@ if __name__ == "__main__":
     with open(place_path, "rb") as f:
         _, _, adj = pickle.load(f, encoding='latin-1')
     adj = torch.tensor(normalize(adj), device=DEVICE)
+
     # Dataset
-    dataset = TrafficDataset(args)
+    dataset_train = TrafficDataset(args, split='train')
+    dataset_val = TrafficDataset(args, split='val')
 
     # use data loader
-    dataloader = DataLoader(dataset, batch_size=args.batch_size,
-                            shuffle=True, num_workers=1)
+    dataloader_train = DataLoader(dataset_train, batch_size=args.batch_size,
+                                  shuffle=True, num_workers=1)
+    dataloader_val = DataLoader(dataset_val, batch_size=args.batch_size,
+                                shuffle=False, num_workers=1)
 
     # Model and optimizer
     if args.model == 'SLGCN':
         model = SLGCN(adj,
-                      nfeat=dataset.features_train.shape[2],
+                      nfeat=dataset_train.features_train.shape[2],
                       nhid=100,
                       nclass=1,
-                      N=dataset.features_train.shape[1],
+                      N=dataset_train.features_train.shape[1],
                       device=DEVICE)
     elif args.model == 'RGCNN':
-        # Model and optimizer
-        num_nodes = dataset.features_train.shape[2]
+        num_nodes = dataset_train.features_train.shape[2]
         input_dim = 2
         num_units = 1000
         hidden_state_size = 264
         nclass = 1
-        seqlen = dataset.features_train.shape[1]
+        seqlen = dataset_train.features_train.shape[1]
         model = GCRNN(adj,
                       num_nodes,
                       num_units,
@@ -81,14 +80,24 @@ if __name__ == "__main__":
                       seqlen).to(DEVICE)
     else:
         model = GCN(adj,
-                    nfeat=dataset.features_train.shape[2],
+                    nfeat=dataset_train.features_train.shape[2],
                     nhid=100,
                     nclass=1,
-                    N=dataset.features_train.shape[1],
+                    N=dataset_train.features_train.shape[1],
                     device=DEVICE)
 
     optimizer = optim.Adam(model.parameters(),
                            lr=args.lr, weight_decay=args.weight_decay)
+
+    # Training
+    hist_loss = []
+    for epoch in range(args.n_epochs):
+        ml_train = run_epoch(model, optimizer, dataloader_train)
+        print('Mean train-loss over batch: {:.4f}'.format(ml_train))
+
+        ml_val = run_epoch(model, optimizer, dataloader_val, training=False)
+        print('Mean validation-loss over batch: {:.4f}'.format(ml_val))
+        hist_loss.append((ml_train, ml_val))
 
     MODEL_SAVE_PATH = "./saved_models/"
     if args.model_name is not None:
@@ -99,5 +108,4 @@ if __name__ == "__main__":
         filepath = filepath.replace(filepath[-6:-3], '{0:03}'.format(int(filepath[-6:-3])+1))
 
     torch.save(model.state_dict(), filepath)
-    hist_loss = train(args.n_epochs, model, optimizer, dataloader)
     np.save(f"losses_on_{args.n_epochs}_epochs", hist_loss)

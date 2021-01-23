@@ -4,3 +4,4 @@
 *.npz
 *__pycache__
 *.pt
+*losses*
