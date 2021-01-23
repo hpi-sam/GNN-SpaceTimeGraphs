@@ -73,8 +73,34 @@ def parse_arguments():
     parser.add_argument(
         '--forecast_horizon', type=int, default=1, help="number of steps to predict into the future"
     )
+    parser.add_argument(
+        '--n_hid', type=int, default=100, help="number of hidden nodes"
+    )
+    parser.add_argument(
+        '--nclass', type=int, default=1, help="number of classes to output. Put 1 for regression problem."
+    )
+    parser.add_argument(
+        '--num_nodes', type=int, default=207, help="number of nodes"
+    )
+    parser.add_argument(
+        '--num_features', type=int, default=2, help="number of features for each node"
+    )
+    parser.add_argument(
+        '--nhid_multipliers', type=int, nargs='+', help="multiplication factors for each hidden layer"
+    )
+    parser.add_argument(
+        '--k', type=int, default=8, help="number of Chebyhev polynomials for spectral convolution"
+    )
+    parser.add_argument(
+        '--seq_len', type=int, default=12, help="number of time-steps to use for a prediction"
+    )
+    parser.add_argument(
+        '--hidden_state_size', type=int, default=264, help="size of hidden state for RNN"
+    )
+    parser.add_argument(
+        '--num_units', type=int, default=1000, help="number of units per layer (RNN)"
+    )
     return parser
-
 
 
 if __name__ == "__main__":

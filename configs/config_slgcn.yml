@@ -12,3 +12,11 @@ n_epochs: 10
 pickled_files:  "metr_la/adj_mx_la.pkl"
 model: "SLGCN"
 gpu: False
+
+# model parameters
+"nhid": 100
+"nclass": 1
+"num_nodes": 207
+"num_features": 2
+"nhid_multipliers": [1, 2]
+"k": 8

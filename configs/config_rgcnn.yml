@@ -12,3 +12,13 @@ n_epochs: 10
 pickled_files:  "metr_la/adj_mx_la.pkl"
 model: "RGCNN"
 gpu: True
+
+# model parameters
+"nhid": 100
+"nclass": 1
+"num_nodes": 207
+"num_features": 2
+"nhid_multipliers": [1, 2]
+"num_units": 1000
+"hidden_state_size": 264
+"seq_len": 12

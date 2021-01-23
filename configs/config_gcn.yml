@@ -12,3 +12,10 @@ n_epochs: 20
 pickled_files:  "metr_la/adj_mx_la.pkl"
 model: "GCN"
 gpu: True
+
+# model parameters
+"nhid": 100
+"nclass": 1
+"num_nodes": 207
+"num_features": 2
+"nhid_multipliers": [1, 2]
