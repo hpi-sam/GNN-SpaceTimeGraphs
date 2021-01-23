@@ -43,6 +43,8 @@ if __name__ == "__main__":
     else:
         DEVICE = torch.device("cpu")
 
+    print(DEVICE)
+
     # Dataset
     dataset_train = TrafficDataset(args, split='train')
     dataset_val = TrafficDataset(args, split='val')

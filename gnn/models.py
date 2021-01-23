@@ -20,12 +20,13 @@ class GCN(nn.Module):
         N = args.num_nodes
         self.adj = adj
 
-        self.layer_list = np.zeros_like(nhid_multipliers, dtype='object_')
+        self.layer_list = nn.ModuleList(np.zeros_like(nhid_multipliers, dtype='object_'))
         for idx, layer_multiplier in enumerate(nhid_multipliers):
             out_dim = nhid * layer_multiplier
-            self.layer_list[idx] = SLConv(in_dim,
+            self.layer_list.insert(idx,
+                                   SLConv(in_dim,
                                           out_dim,
-                                          act_func=F.leaky_relu).to(device)
+                                          act_func=F.leaky_relu).to(device))
             in_dim = out_dim
         self.gc_last = SLConv(in_dim, nclass).to(device)
 
@@ -35,31 +36,6 @@ class GCN(nn.Module):
         for layer in self.layer_list:
             x = layer(x, self.adj, self.S)
         x = self.gc_last(x, self.adj, self.S)
-        return x
-
-
-class MultiTempGCN(nn.Module):
-    def __init__(self,
-                 nfeat,
-                 nhid,
-                 nclass,
-                 n,
-                 time_hops=(1, 12, 288),
-                 device=None):
-        super(MultiTempGCN, self).__init__()
-        self.gcn_blocks = np.zeros_like(time_hops, dtype='object_')
-        for idx, time_hop in time_hops:
-            self.gcn_blocks[idx] = self.gcn_block = GCN(nfeat=nfeat,
-                                                        nhid=nhid,
-                                                        nclass=nclass,
-                                                        n=n,
-                                                        device=device)
-        self.linear = torch.nn.Linear(len(time_hops), nclass)
-
-    def forward(self, x, adj):
-        for idx, gcn_block in enumerate(self.gcn_blocks):
-            x[idx] = F.relu(gcn_block(x[idx], adj))
-        x = self.linear(x)
         return x
 
 
@@ -116,24 +92,28 @@ class SLGCN(nn.Module):
         k = args.k
 
         # layers
-        self.g_layer_list = np.zeros_like(nhid_multipliers, dtype='object_')
-        self.l_layer_list = np.zeros_like(nhid_multipliers, dtype='object_')
+        self.g_layer_list = nn.ModuleList(np.zeros_like(nhid_multipliers, dtype='object_'))
+        self.l_layer_list = nn.ModuleList(np.zeros_like(nhid_multipliers, dtype='object_'))
         for idx, layer_multiplier in enumerate(nhid_multipliers):
             out_dim = nhid * layer_multiplier
-            self.g_layer_list[idx] = GlobalSLC(
-                in_dim, out_dim, N, act_func=F.leaky_relu).to(device)
-            self.l_layer_list[idx] = LocalSLC(adj,
+            self.g_layer_list.insert(idx,
+                                     GlobalSLC(in_dim,
+                                               out_dim,
+                                               N,
+                                               act_func=F.leaky_relu).to(device))
+            self.l_layer_list.insert(idx,
+                                     LocalSLC(adj,
                                               in_dim,
                                               out_dim,
                                               N,
                                               k,
-                                              act_func=F.leaky_relu).to(device)
+                                              act_func=F.leaky_relu).to(device))
             in_dim = out_dim
         self.g_last = GlobalSLC(in_dim, nclass, N).to(device)
         self.l_last = LocalSLC(adj, in_dim, nclass, N, k).to(device)
 
     def forward(self, x):
         for g_layer, l_layer in zip(self.g_layer_list, self.l_layer_list):
-            x = g_layer(x) + l_layer(x)
-        x = self.g_last(x) + self.l_last(x)
+            x = g_layer(x) #+ l_layer(x)
+        x = self.g_last(x) #+ self.l_last(x)
         return x
