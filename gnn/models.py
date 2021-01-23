@@ -9,9 +9,10 @@ from gnn.layers import SLConv, SLGRUCell, GlobalSLC, LocalSLC
 
 
 class GCN(nn.Module):
-    def __init__(self, nfeat, nhid, nclass, N, nhid_multipliers=(1, 2), device=None):
+    def __init__(self, adj, nfeat, nhid, nclass, N, nhid_multipliers=(1, 2), device=None):
         super(GCN, self).__init__()
         in_dim = nfeat
+        self.adj = adj
         self.layer_list = np.zeros_like(nhid_multipliers, dtype='object_')
         for idx, layer_multiplier in enumerate(nhid_multipliers):
             out_dim = nhid * layer_multiplier
@@ -21,10 +22,10 @@ class GCN(nn.Module):
 
         self.S = Parameter(torch.ones(N, N, device=device))
 
-    def forward(self, x, adj):
+    def forward(self, x):
         for layer in self.layer_list:
-            x = layer(x, adj, self.S)
-        x = self.gc_last(x, adj, self.S)
+            x = layer(x, self.adj, self.S)
+        x = self.gc_last(x, self.adj, self.S)
         return x
 
 

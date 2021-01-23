@@ -13,6 +13,7 @@ TEST_FILE = "./data/metr_la/test.npz"
 MODEL_SAVE_PATH = "./saved_models/"
 ADJACENCY_PKL = "metr_la/adj_mx_la.pkl"
 
+
 def parse_arguments():
     """
     Parses arguments passed to the command line.
@@ -23,7 +24,7 @@ def parse_arguments():
         default_config_files=[CONFIG_FILEPATH],
         config_file_parser_class=configargparse.YAMLConfigFileParser
     )
-    parser.add(
+    parser.add_argument(
         '-c', '--my-config', is_config_file=True, help="Use config file to set arguments."
                                                        "You can add new to override the"
                                                        "the config file"
