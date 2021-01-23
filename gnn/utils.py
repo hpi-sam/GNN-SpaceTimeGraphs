@@ -8,7 +8,9 @@ import numpy as np
 import os
 import pandas as pd
 import scipy.sparse as sp
+import pickle
 import torch
+import pathlib as path
 
 
 def generate_graph_seq2seq_io_data(
@@ -178,6 +180,26 @@ def load_data(filename):
     npz = np.load(filename)
     features, labels = npz['x'], npz['y']
     return features, labels
+
+
+def load_adjacency_matrix(args, DEVICE):
+    place = args.pickled_files
+    place_path = path.Path("./data") / place
+    with open(place_path, "rb") as f:
+        _, _, adj = pickle.load(f, encoding='latin-1')
+    adj = torch.tensor(normalize(adj), device=DEVICE)
+    return adj
+
+
+def save_model_to_path(args, model, model_save_path="./saved_models/"):
+    if args.model_name is not None:
+        filepath = model_save_path + args.model_name + '.pt'
+    else:
+        filepath = model_save_path + 'model_001' + '.pt'
+    if path.Path(filepath).is_file():
+        filepath = filepath.replace(filepath[-6:-3], '{0:03}'.format(int(filepath[-6:-3])+1))
+
+    torch.save(model.state_dict(), filepath)
 
 
 def main(args):

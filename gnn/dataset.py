@@ -4,6 +4,11 @@ import torch
 
 
 class TrafficDataset(Dataset):
+    """
+    Dataset that holds the time-series data for a given source_file (split).
+    :param split: declares which split of the data should be used.
+    :param args: contains source files; forecast horizon and whether whether to use toy data.
+    """
     def __init__(self, args, split='train'):
         if split == 'train':
             source_file = args.train_file
@@ -12,7 +17,9 @@ class TrafficDataset(Dataset):
         else:
             source_file = args.test_file
         self.features_train, self.labels_train = load_data(source_file)
+
         # forecast_horizon: number of time-steps of 5 Minute to intervals to predict in the future; 3 ~ 15 Min
+        # check whether we have the sequence to sequence data-set or sequence to instance dataset
         if args.forecast_horizon >= 1 and len(self.labels_train.shape) == 4:
             self.labels_train = self.labels_train[:, args.forecast_horizon - 1, :, :]
         # create the toy data for only 5 nodes

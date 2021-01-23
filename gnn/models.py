@@ -8,11 +8,18 @@ from torch.nn.parameter import Parameter
 from gnn.layers import SLConv, SLGRUCell, GlobalSLC, LocalSLC
 
 
+# TODO: rename model parameters
 class GCN(nn.Module):
-    def __init__(self, adj, nfeat, nhid, nclass, N, nhid_multipliers=(1, 2), device=None):
+    def __init__(self, adj, args, device=None):
         super(GCN, self).__init__()
-        in_dim = nfeat
+        # model parameters
+        in_dim = args.num_features
+        nhid_multipliers = args.nhid_multipliers
+        nhid = args.n_hid
+        nclass = args.nclass
+        N = args.num_nodes
         self.adj = adj
+
         self.layer_list = np.zeros_like(nhid_multipliers, dtype='object_')
         for idx, layer_multiplier in enumerate(nhid_multipliers):
             out_dim = nhid * layer_multiplier
@@ -49,22 +56,30 @@ class MultiTempGCN(nn.Module):
 
 
 class GCRNN(nn.Module):
-    def __init__(self, adj, num_nodes, num_units, input_dim, nclass, hidden_state_size, seq_len):
+    def __init__(self, adj, args, device=None):
         super(GCRNN, self).__init__()
-        self.S = Parameter(torch.ones(num_nodes, num_nodes))
-        self.hidden_state_size = hidden_state_size
-        self.seq_len = seq_len
-        self.num_nodes = num_nodes
+        # model parameters
+        num_nodes = args.num_nodes
+        num_units = args.num_units
+        input_dim = args.num_features
+        hidden_state_size = args.hidden_state_size
+        nclass = args.nclass
+        self.device = device
+
+        self.S = Parameter(torch.ones(num_nodes, num_nodes, device=device))
+        self.hidden_state_size = args.hidden_state_size
+        self.seq_len = args.seq_len
+        self.num_nodes = args.num_nodes
         self.adj = adj
-        self.gru1 = SLGRUCell(num_units, adj, num_nodes, input_dim, hidden_state_size)
-        self.gc1 = SLConv(hidden_state_size, 2*num_units, F.leaky_relu)
-        self.gc2 = SLConv(2*num_units, num_units, F.leaky_relu)
-        self.gc_last = SLConv(num_units, nclass)
+        self.gru1 = SLGRUCell(num_units, adj, num_nodes, input_dim, hidden_state_size).to(device)
+        self.gc1 = SLConv(hidden_state_size, 2*num_units, F.leaky_relu).to(device)
+        self.gc2 = SLConv(2*num_units, num_units, F.leaky_relu).to(device)
+        self.gc_last = SLConv(num_units, nclass).to(device)
 
     def forward(self, inputs, hidden_state=None):
         batch_size = inputs.shape[0]
         if hidden_state is None:
-            hidden_state = torch.zeros(batch_size, self.num_nodes, self.hidden_state_size, device=torch.device("cuda:0"))
+            hidden_state = torch.zeros(batch_size, self.num_nodes, self.hidden_state_size, device=self.device)
 
         for step in range(self.seq_len):
             hidden_state = self.gru1(inputs[:, step], hidden_state, self.S)
@@ -76,10 +91,18 @@ class GCRNN(nn.Module):
 
 
 class SLGCN(nn.Module):
-    def __init__(self, adj, nfeat, nhid, nclass, N, nhid_multipliers=(1, 2), k=8, device=None):
+    def __init__(self, adj, args, device=None):
         super(SLGCN, self).__init__()
         self.adj = adj
-        in_dim = nfeat
+        # model parameters
+        in_dim = args.num_features
+        nhid_multipliers = args.nhid_multipliers
+        nhid = args.n_hid
+        nclass = args.nclass
+        N = args.num_nodes
+        k = args.k
+
+        # layers
         self.g_layer_list = np.zeros_like(nhid_multipliers, dtype='object_')
         self.l_layer_list = np.zeros_like(nhid_multipliers, dtype='object_')
         for idx, layer_multiplier in enumerate(nhid_multipliers):
