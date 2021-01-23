@@ -1,10 +1,11 @@
-import torch
 import math
 
+import torch
 import torch.nn as nn
-from gnn.utils import generate_knn_ids
-from gnn.argparser import parse_arguments
 from torch.nn.parameter import Parameter
+
+from gnn.argparser import parse_arguments
+from gnn.utils import generate_knn_ids
 
 parser = parse_arguments()
 args = parser.parse_args()
@@ -73,10 +74,10 @@ class GlobalSLC(nn.Module):
         # computation of static graph structure convolution
         out_s = out + torch.matmul(torch.matmul(self.ws, x), self.ts[1])
         tk_prev = self.ws
-        tk = 2.*torch.matmul(self.ws, self.ws) - self.t0
+        tk = 2. * torch.matmul(self.ws, self.ws) - self.t0
         for k in range(2, self.cs):
             out_s = out_s + torch.matmul(torch.matmul(tk, x), self.ts[k])
-            tk = 2.*torch.matmul(self.ws, tk) - tk_prev
+            tk = 2. * torch.matmul(self.ws, tk) - tk_prev
 
         # computation of dynamical graph structure convolution
         # QUESTION: Why isnt it implemented as x^T W_p x as in the paper?
@@ -87,10 +88,10 @@ class GlobalSLC(nn.Module):
 
         out_d = out + torch.matmul(torch.matmul(wd, x), self.td[1])
         tk_prev = wd
-        tk = 2.*torch.matmul(wd, wd) - self.t0
+        tk = 2. * torch.matmul(wd, wd) - self.t0
         for k in range(2, self.cd):
             out_d = out_d + torch.matmul(torch.matmul(tk, x), self.td[k])
-            tk = 2.*torch.matmul(wd, tk) - tk_prev
+            tk = 2. * torch.matmul(wd, tk) - tk_prev
 
         if self.act_func:
             out_s = self.act_func(out_s)
@@ -135,14 +136,15 @@ class LocalSLC(nn.Module):
 
     def forward(self, x):
         x = x[:, self.knn_ids, :]  # (batch_size, n, k, cin)
-        y = self.static_part(x) #+ self.dynamical_part(x)
+        y = self.static_part(x)  #+ self.dynamical_part(x)
         if self.act_func:
             y = self.act_func(y)
         return y
 
 
 class SLGRUCell(nn.Module):
-    def __init__(self, num_units, adj, num_nodes, input_dim, hidden_state_size):
+    def __init__(self, num_units, adj, num_nodes, input_dim,
+                 hidden_state_size):
         super().__init__()
         self._activation = torch.tanh
         self.adj = adj
@@ -150,15 +152,17 @@ class SLGRUCell(nn.Module):
         self._num_nodes = num_nodes
         self._input_dim = input_dim
         self._hidden_state_size = hidden_state_size
-        self.gc1 = SLConv(input_dim+hidden_state_size, hidden_state_size)
-        self.gc2 = SLConv(input_dim+hidden_state_size, hidden_state_size)
-        self.gc3 = SLConv(input_dim+hidden_state_size, hidden_state_size)
+        self.gc1 = SLConv(input_dim + hidden_state_size, hidden_state_size)
+        self.gc2 = SLConv(input_dim + hidden_state_size, hidden_state_size)
+        self.gc3 = SLConv(input_dim + hidden_state_size, hidden_state_size)
 
     def forward(self, inputs, hx, S):
-        x = torch.cat([inputs, hx], dim=2)  # (batch_size, num_nodes, num_features+num_hidden_features)
+        x = torch.cat(
+            [inputs, hx],
+            dim=2)  # (batch_size, num_nodes, num_features+num_hidden_features)
         u = torch.sigmoid(self.gc1(x, self.adj, S))
         r = torch.sigmoid(self.gc2(x, self.adj, S))
-        x = torch.cat([inputs, r*hx], dim=2)
+        x = torch.cat([inputs, r * hx], dim=2)
         c = self._activation(self.gc3(x, self.adj, S))
 
         new_state = u * hx + (1.0 - u) * c

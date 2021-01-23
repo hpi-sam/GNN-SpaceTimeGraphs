@@ -2,13 +2,13 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
+from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from torch.utils.data import DataLoader
-from gnn.models import GCN, SLGCN, GCRNN
-from gnn.utils import load_adjacency_matrix, save_model_to_path
-from gnn.dataset import TrafficDataset
 from gnn.argparser import parse_arguments
+from gnn.dataset import TrafficDataset
+from gnn.models import GCN, GCRNN, SLGCN
+from gnn.utils import load_adjacency_matrix, save_model_to_path
 
 
 def run_epoch(model, optimizer, dataloader, training=True):
@@ -17,15 +17,20 @@ def run_epoch(model, optimizer, dataloader, training=True):
     for sample_batched in bar:
         model.train()
         optimizer.zero_grad()
-        x = torch.tensor(sample_batched['features'], device=DEVICE, dtype=torch.float32)
-        y = torch.tensor(sample_batched['labels'], device=DEVICE, dtype=torch.float32)
+        x = torch.tensor(sample_batched['features'],
+                         device=DEVICE,
+                         dtype=torch.float32)
+        y = torch.tensor(sample_batched['labels'],
+                         device=DEVICE,
+                         dtype=torch.float32)
         output = model(x)
         loss = F.mse_loss(output, y)
         if training:
             loss.backward()
             optimizer.step()
         losses.append(loss.item())
-        bar.set_description('epoch: {}, loss: {:.4f}'.format(epoch + 1, loss.item()))
+        bar.set_description('epoch: {}, loss: {:.4f}'.format(
+            epoch + 1, loss.item()))
     return np.mean(losses)
 
 
@@ -38,13 +43,21 @@ if __name__ == "__main__":
     else:
         DEVICE = torch.device("cpu")
 
+    print(DEVICE)
+
     # Dataset
     dataset_train = TrafficDataset(args, split='train')
     dataset_val = TrafficDataset(args, split='val')
 
     # use data loader
-    dataloader_train = DataLoader(dataset_train, batch_size=args.batch_size, shuffle=True, num_workers=1)
-    dataloader_val = DataLoader(dataset_val, batch_size=args.batch_size, shuffle=False, num_workers=1)
+    dataloader_train = DataLoader(dataset_train,
+                                  batch_size=args.batch_size,
+                                  shuffle=True,
+                                  num_workers=1)
+    dataloader_val = DataLoader(dataset_val,
+                                batch_size=args.batch_size,
+                                shuffle=False,
+                                num_workers=1)
 
     # load adjacency matrix
     adj = load_adjacency_matrix(args, DEVICE)
@@ -58,7 +71,9 @@ if __name__ == "__main__":
     else:
         model = GCN(adj, args, device=DEVICE)
 
-    optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    optimizer = optim.Adam(model.parameters(),
+                           lr=args.lr,
+                           weight_decay=args.weight_decay)
 
     # Training
     hist_loss = []
