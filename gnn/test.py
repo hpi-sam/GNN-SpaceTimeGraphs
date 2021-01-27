@@ -22,11 +22,8 @@ def run_epoch(model, optimizer, dataloader, training=True):
         y = torch.tensor(sample_batched['labels'], device=DEVICE, dtype=torch.float32)
         output = model(x)
         loss = F.mse_loss(output, y)
-        if training:
-            loss.backward()
-            optimizer.step()
         losses.append(loss.item())
-        bar.set_description('epoch: {}, loss: {:.4f}'.format(epoch + 1, loss.item()))
+        bar.set_description('loss: {:.4f}'.format(loss.item()))
     return np.mean(losses)
 
 if __name__=='__main__':
@@ -53,11 +50,9 @@ if __name__=='__main__':
     else:
         model = GCN(adj, args, device=DEVICE)
 
-    model.load_state_dict(torch.load(MODEL_SAVE_PATH + 'model_teste.pt'))
+    model.load_state_dict(torch.load(MODEL_SAVE_PATH + 'slgcn_global.pt'))
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
-    for epoch in range(1):
-        print(epoch)
-        ml_test = run_epoch(model=model, optimizer=optimizer, dataloader=dataloader_test, training=False)
-        print('Mean train-loss over batch: {:.4f}'.format(ml_test))
-        print(ml_test)
+    print('Iterate over the test-split...')
+    ml_test = run_epoch(model=model, optimizer=optimizer, dataloader=dataloader_test, training=False)
+    print('Mean loss over test dataset: {:.4f}'.format(ml_test))
