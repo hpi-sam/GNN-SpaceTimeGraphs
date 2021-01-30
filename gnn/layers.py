@@ -17,11 +17,11 @@ else:
 
 
 class SLConv(nn.Module):
-    def __init__(self, in_chanels, out_chanels, act_func=None):
+    def __init__(self, c_in, c_out, act_func=None):
         super(SLConv, self).__init__()
-        self.in_chanels = in_chanels
-        self.out_chanels = out_chanels
-        self.weight = Parameter(torch.rand(in_chanels, out_chanels))
+        self.c_in = c_in
+        self.c_out = c_out
+        self.weight = Parameter(torch.rand(c_in, c_out))
         self.reset_parameters()
         self.act_func = act_func
 
@@ -30,8 +30,8 @@ class SLConv(nn.Module):
         self.weight.data.uniform_(-stdv, stdv)
 
     def forward(self, x, adj, S):
-        x = torch.matmul(x, self.weight)  # (1,N,out_chanels)
-        weighting = torch.mul(S, adj)  # (N,N)
+        x = torch.matmul(x, self.weight)  # (1,num_nodes,c_out)
+        weighting = torch.mul(S, adj)  # (num_nodes,num_nodes)
         output = torch.matmul(weighting, x)
         if self.act_func:
             output = self.act_func(output)
@@ -39,24 +39,24 @@ class SLConv(nn.Module):
 
     def __repr__(self):
         return self.__class__.__name__ + ' (' \
-               + str(self.in_chanels) + ' -> ' \
-               + str(self.out_chanels) + ')'
+               + str(self.c_in) + ' -> ' \
+               + str(self.c_out) + ')'
 
 
 class GlobalSLC(nn.Module):
-    def __init__(self, cin, cout, N, cs=6, cd=6, act_func=None):
+    def __init__(self, c_in, c_out, num_nodes, cs=6, cd=6, act_func=None):
         super(GlobalSLC, self).__init__()
-        self.cin = cin
-        self.cout = cout
-        self.num_nodes = N
+        self.c_in = c_in
+        self.c_out = c_out
+        self.num_nodes = num_nodes
         self.cs = cs
         self.cd = cd
 
         # convolution parameters
         self.ws = Parameter(torch.rand(self.num_nodes, self.num_nodes))
-        self.wp = Parameter(torch.rand(cin, cin))
-        self.ts = Parameter(torch.rand((cs, cin, cout)))
-        self.td = Parameter(torch.rand((cd, cin, cout)))
+        self.wp = Parameter(torch.rand(c_in, c_in))
+        self.ts = Parameter(torch.rand((cs, c_in, c_out)))
+        self.td = Parameter(torch.rand((cd, c_in, c_out)))
         self.param_list = [self.ws, self.wp, self.ts, self.td]
 
         self.t0 = torch.eye(self.num_nodes, self.num_nodes, device=DEVICE)
@@ -69,7 +69,14 @@ class GlobalSLC(nn.Module):
             parameter.data.uniform_(-stdv, stdv)
 
     def forward(self, x):
-        out = torch.matmul(torch.matmul(self.t0, x), self.ts[0])
+        """
+        Spatial Graph Convolution using the Global Structure Learning architecture.
+
+        :param x: graph signal at time [t-time_steps + 1,...,t] (batch_size, time_steps, num_nodes, c_in)
+        :return: convolved signal at time [t-time_steps + 1,...,t] (batch_size, time_steps, num_nodes, c_out)
+        """
+        # (num_nodes, num_nodes) x (batch_size, num_nodes, in_feat) x (c_in, c_out)
+        out = torch.matmul(torch.matmul(self.t0, x), self.ts[0])  # (batch_size, num_nodes, c_out)
 
         # computation of static graph structure convolution
         out_s = out + torch.matmul(torch.matmul(self.ws, x), self.ts[1])
@@ -102,20 +109,20 @@ class GlobalSLC(nn.Module):
 
 
 class LocalSLC(nn.Module):
-    def __init__(self, adj, cin, cout, N, k, g=None, act_func=None):
+    def __init__(self, adj, c_in, c_out, num_nodes, k, g=None, act_func=None):
         super(LocalSLC, self).__init__()
         self.adj = adj
-        self.cin = cin
-        self.cout = cout
-        self.N = N
+        self.c_in = c_in
+        self.c_out = c_out
+        self.num_nodes = num_nodes
         self.k = k
         self.act_func = act_func
 
         # learnable parameters and functions
-        self.bs = Parameter(torch.randn(N, self.k))
-        self.ws = Parameter(torch.randn(self.k, cin, cout))
-        self.wd = Parameter(torch.randn(self.k, cin, cout))
-        self.nu = Parameter(torch.randn(cin))
+        self.bs = Parameter(torch.randn(num_nodes, self.k))
+        self.ws = Parameter(torch.randn(self.k, c_in, c_out))
+        self.wd = Parameter(torch.randn(self.k, c_in, c_out))
+        self.nu = Parameter(torch.randn(c_in))
         # TODO: implement dynamical component of local convolution
         self.param_list = [self.bs, self.ws]
         self.knn_ids = generate_knn_ids(self.adj, self.k)
@@ -135,7 +142,7 @@ class LocalSLC(nn.Module):
         return torch.einsum("nk,kio,bnki->bno", self.bs, self.ws, x)
 
     def forward(self, x):
-        x = x[:, self.knn_ids, :]  # (batch_size, n, k, cin)
+        x = x[:, self.knn_ids, :]  # (batch_size, n, k, c_in)
         y = self.static_part(x)  #+ self.dynamical_part(x)
         if self.act_func:
             y = self.act_func(y)

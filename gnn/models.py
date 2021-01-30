@@ -6,26 +6,25 @@ from torch.nn.parameter import Parameter
 from gnn.layers import GlobalSLC, LocalSLC, SLConv, SLGRUCell
 
 
-# TODO: rename model parameters
 class GCN(nn.Module):
     def __init__(self, adj, args, device=None):
         super(GCN, self).__init__()
         # model parameters
-        in_dim = args.num_features
+        num_features = args.num_features
         nhid_multipliers = args.nhid_multipliers
         nhid = args.n_hid
         nclass = args.nclass
-        N = args.num_nodes
+        num_nodes = args.num_nodes
         self.adj = adj
 
         self.layer_list = nn.ModuleList()
         for idx, layer_multiplier in enumerate(nhid_multipliers):
             out_dim = nhid * layer_multiplier
-            self.layer_list.insert(idx, SLConv(in_dim, out_dim, act_func=F.leaky_relu).to(device))
-            in_dim = out_dim
-        self.gc_last = SLConv(in_dim, nclass).to(device)
+            self.layer_list.insert(idx, SLConv(num_features, out_dim, act_func=F.leaky_relu).to(device))
+            num_features = out_dim
+        self.gc_last = SLConv(num_features, nclass).to(device)
 
-        self.S = Parameter(torch.ones(N, N, device=device))
+        self.S = Parameter(torch.ones(num_nodes, num_nodes, device=device))
 
     def forward(self, x):
         for layer in self.layer_list:
@@ -74,11 +73,11 @@ class SLGCN(nn.Module):
         super(SLGCN, self).__init__()
         self.adj = adj
         # model parameters
-        in_dim = args.num_features
+        num_features = args.num_features
         nhid_multipliers = args.nhid_multipliers
         nhid = args.n_hid
         nclass = args.nclass
-        N = args.num_nodes
+        num_nodes = args.num_nodes
         k = args.k
 
         # layers
@@ -86,11 +85,11 @@ class SLGCN(nn.Module):
         self.l_layer_list = nn.ModuleList()
         for idx, layer_multiplier in enumerate(nhid_multipliers):
             out_dim = nhid * layer_multiplier
-            self.g_layer_list.insert(idx, GlobalSLC(in_dim, out_dim, N, act_func=F.leaky_relu).to(device))
-            self.l_layer_list.insert(idx, LocalSLC(adj, in_dim, out_dim, N, k, act_func=F.leaky_relu).to(device))
-            in_dim = out_dim
-        self.g_last = GlobalSLC(in_dim, nclass, N).to(device)
-        self.l_last = LocalSLC(adj, in_dim, nclass, N, k).to(device)
+            self.g_layer_list.insert(idx, GlobalSLC(num_features, out_dim, num_nodes, act_func=F.leaky_relu).to(device))
+            self.l_layer_list.insert(idx, LocalSLC(adj, num_features, out_dim, num_nodes, k, act_func=F.leaky_relu).to(device))
+            num_features = out_dim
+        self.g_last = GlobalSLC(num_features, nclass, num_nodes).to(device)
+        self.l_last = LocalSLC(adj, num_features, nclass, num_nodes, k).to(device)
 
     def forward(self, x):
         for g_layer, l_layer in zip(self.g_layer_list, self.l_layer_list):
