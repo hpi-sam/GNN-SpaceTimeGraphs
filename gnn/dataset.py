@@ -17,7 +17,7 @@ class TrafficDataset(Dataset):
             source_file = args.val_file
         else:
             source_file = args.test_file
-        self.features_train, self.labels_train = load_data(source_file)
+        self.features_train, self.labels_train, self.mu, self.std = load_data(source_file)
 
         # forecast_horizon: number of time-steps of 5 Minute to intervals to predict in the future; 3 ~ 15 Min
         # check whether we have the sequence to sequence data-set or sequence to instance dataset

@@ -227,4 +227,6 @@ class STGCNBlock(nn.Module):
         t = self.temporal1(x)
         t2 = self.spatial1(t)
         t3 = self.temporal2(t2)
-        return t3
+        t3 = t3.permute(0, 2, 3, 1)
+        out = self.batch_norm(t3)
+        return out.permute(0, 3, 1, 2)

@@ -34,6 +34,8 @@ def generate_graph_seq2seq_io_data(df,
 
     num_samples, num_nodes = df.shape
     data = np.expand_dims(df.values, axis=-1)
+    data, mean, std = normalize_data(data)
+
     data_list = [data]
     if add_time_in_day:
         time_ind = (df.index.values -
@@ -59,13 +61,15 @@ def generate_graph_seq2seq_io_data(df,
         y.append(y_t)
     x = np.stack(x, axis=0)
     y = np.stack(y, axis=0)
-    return x, y
+
+    return x, y, mean, std
 
 
 def generate_train_val_test_inst_to_inst(args):
     df = pd.read_hdf(args.traffic_df_filename)
     num_samples, num_nodes = df.shape
     data = np.expand_dims(df.values, axis=-1)
+    data, mean, std = normalize_data(data)
     data_list = [data]
     if args.add_time_in_day:
         time_ind = (df.index.values -
@@ -114,9 +118,21 @@ def generate_train_val_test_inst_to_inst(args):
             os.path.join(args.output_dir, "%s.npz" % cat),
             x=_x,
             y=_y,
+            mu=mean,
+            std=std,
             x_offsets=0,
             y_offsets=1,
         )
+
+
+def normalize_data(data):
+    # apply Z-Score normalization
+    mean = np.mean(data, axis=(0, 1))
+    std = np.std(data, axis=(0, 1))
+
+    out = data - mean
+    out = out / std
+    return out, mean, std
 
 
 def generate_train_val_test(args):
@@ -129,7 +145,7 @@ def generate_train_val_test(args):
     y_offsets = np.sort(np.arange(1, 13, 1))
     # x: (num_samples, input_length, num_nodes, input_dim)
     # y: (num_samples, output_length, num_nodes, output_dim)
-    x, y = generate_graph_seq2seq_io_data(
+    x, y, mean, std = generate_graph_seq2seq_io_data(
         df,
         x_offsets=x_offsets,
         y_offsets=y_offsets,
@@ -163,6 +179,8 @@ def generate_train_val_test(args):
             os.path.join(args.output_dir, "%s.npz" % cat),
             x=_x,
             y=_y,
+            mu=mean,
+            std=std,
             x_offsets=x_offsets.reshape(list(x_offsets.shape) + [1]),
             y_offsets=y_offsets.reshape(list(y_offsets.shape) + [1]),
         )
@@ -184,8 +202,8 @@ def generate_knn_ids(dist, k):
 
 def load_data(filename):
     npz = np.load(filename)
-    features, labels = npz['x'], npz['y']
-    return features, labels
+    features, labels, mu, std = npz['x'], npz['y'], npz['mu'], npz['std']
+    return features, labels, mu, std
 
 
 def load_adjacency_matrix(args, DEVICE):

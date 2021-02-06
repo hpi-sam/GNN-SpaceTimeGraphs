@@ -3,8 +3,7 @@ test_file: "./data/metr_la/test_sts.npz"
 val_file: "./data/metr_la/val_sts.npz"
 forecast_horizon: 1
 toy_data: False
-lr: 0.0001
-weight_decay: 0.95
+lr: 0.001
 batch_size: 32
 save_model: True
 model_name: model_001
