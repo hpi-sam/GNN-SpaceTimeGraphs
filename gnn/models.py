@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.parameter import Parameter
 
-from gnn.layers import GlobalSLC, LocalSLC, SLConv, SLGRUCell
+from gnn.layers import GlobalSLC, LocalSLC, SLConv, SLGRUCell, STGCNBlock, TimeBlock
 
 
 class GCN(nn.Module):
@@ -86,7 +86,8 @@ class SLGCN(nn.Module):
         for idx, layer_multiplier in enumerate(nhid_multipliers):
             out_dim = nhid * layer_multiplier
             self.g_layer_list.insert(idx, GlobalSLC(num_features, out_dim, num_nodes, act_func=F.leaky_relu).to(device))
-            self.l_layer_list.insert(idx, LocalSLC(adj, num_features, out_dim, num_nodes, k, act_func=F.leaky_relu).to(device))
+            self.l_layer_list.insert(idx, LocalSLC(adj, num_features, out_dim, num_nodes, k, act_func=F.leaky_relu).to(
+                device))
             num_features = out_dim
         self.g_last = GlobalSLC(num_features, nclass, num_nodes).to(device)
         self.l_last = LocalSLC(adj, num_features, nclass, num_nodes, k).to(device)
@@ -96,3 +97,30 @@ class SLGCN(nn.Module):
             x = g_layer(x) + l_layer(x)
         x = self.g_last(x) + self.l_last(x)
         return x
+
+
+class STGCN(nn.Module):
+    def __init__(self, adj, args, device=None):
+        super(STGCN, self).__init__()
+        num_features = args.num_features
+        nclass = args.nclass
+        num_nodes = args.num_nodes
+        k = args.k
+
+        num_timesteps = 12
+
+        self.block1 = STGCNBlock(in_channels=num_features, out_channels=64,
+                                 spatial_channels=16, num_nodes=num_nodes, adj=adj).to(device)
+        self.block2 = STGCNBlock(in_channels=64, out_channels=64,
+                                 spatial_channels=16, num_nodes=num_nodes, adj=adj).to(device)
+        self.last_temporal = TimeBlock(in_channels=64, out_channels=64).to(device)
+        self.fully = nn.Linear((num_timesteps - 2 * 5) * 64, nclass).to(device)
+
+    def forward(self, x):
+        out1 = self.block1(x)
+        out2 = self.block2(out1)
+        out3 = self.last_temporal(out2)
+        out4 = self.fully(out3.reshape((out3.shape[0], out3.shape[2], -1)))\
+            .reshape(out3.shape[0], out3.shape[2], 1)
+        return out4
+

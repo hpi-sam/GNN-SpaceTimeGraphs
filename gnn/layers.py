@@ -2,6 +2,7 @@ import math
 
 import torch
 import torch.nn as nn
+from torch.functional import F
 from torch.nn.parameter import Parameter
 
 from gnn.argparser import parse_arguments
@@ -14,6 +15,25 @@ if args.gpu:
     DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 else:
     DEVICE = torch.device("cpu")
+
+
+class GC(nn.Module):
+    def __init__(self, adj, c_in, c_out):
+        super(GC, self).__init__()
+
+        self.adj = adj
+        self.th = nn.Parameter(torch.FloatTensor(c_in, c_out))
+
+        self.reset_parameters()
+
+    def forward(self, x):
+        out = torch.einsum("ij,kljm->kilm", self.adj, x)
+        out = torch.matmul(out, self.th)
+        return F.relu(out).permute(0, 2, 1, 3)
+
+    def reset_parameters(self):
+        stdv = 1. / math.sqrt(self.th.shape[1])
+        self.th.data.uniform_(-stdv, stdv)
 
 
 class SLConv(nn.Module):
@@ -87,8 +107,10 @@ class GlobalSLC(nn.Module):
             tk = 2. * torch.matmul(self.ws, tk) - tk_prev
 
         # computation of dynamical graph structure convolution
-        # QUESTION: Why isnt it implemented as x^T W_p x as in the paper?
-        wd = torch.matmul(x, torch.matmul(self.wp, torch.transpose(x, 1, 2)))
+        if len(x.shape) == 4:
+            wd = torch.matmul(x, torch.matmul(self.wp, torch.transpose(x, 2, 3)))
+        else:
+            wd = torch.matmul(x, torch.matmul(self.wp, torch.transpose(x, 1, 2)))
         # normalize wd -> to get rid of exploding gradients
         wd = wd + torch.min(wd)
         wd = wd / torch.max(wd) / self.num_nodes**2
@@ -172,3 +194,37 @@ class SLGRUCell(nn.Module):
 
         new_state = u * hx + (1.0 - u) * c
         return new_state
+
+
+class TimeBlock(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size=3):
+        super(TimeBlock, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels, out_channels, (1, kernel_size))
+        self.conv2 = nn.Conv2d(in_channels, out_channels, (1, kernel_size))
+        self.conv3 = nn.Conv2d(in_channels, out_channels, (1, kernel_size))
+
+    def forward(self, X):
+        # Convert into NCHW format for pytorch to perform convolutions.
+        X = X.permute(0, 3, 2, 1)
+        temp = self.conv1(X) + torch.sigmoid(self.conv2(X))
+        out = F.relu(temp + self.conv3(X))
+        # Convert back from NCHW to NHWC
+        out = out.permute(0, 3, 2, 1)
+        return out
+
+
+class STGCNBlock(nn.Module):
+    def __init__(self, in_channels, spatial_channels, out_channels,
+                 num_nodes, adj):
+        super(STGCNBlock, self).__init__()
+        self.temporal1 = TimeBlock(in_channels=in_channels, out_channels=out_channels)
+        self.spatial1 = GlobalSLC(out_channels, spatial_channels, num_nodes, act_func=F.relu)
+        # self.spatial1 = GC(adj, out_channels, spatial_channels)
+        self.temporal2 = TimeBlock(in_channels=spatial_channels, out_channels=out_channels)
+        self.batch_norm = nn.BatchNorm2d(num_nodes)
+
+    def forward(self, x):
+        t = self.temporal1(x)
+        t2 = self.spatial1(t)
+        t3 = self.temporal2(t2)
+        return t3
