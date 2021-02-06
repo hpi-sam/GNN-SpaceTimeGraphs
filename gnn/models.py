@@ -105,7 +105,6 @@ class STGCN(nn.Module):
         num_features = args.num_features
         nclass = args.nclass
         num_nodes = args.num_nodes
-        k = args.k
 
         num_timesteps = 12
 

@@ -7,8 +7,8 @@ from tqdm import tqdm
 
 from gnn.argparser import parse_arguments
 from gnn.dataset import TrafficDataset
-from gnn.models import GCN, GCRNN, SLGCN
-from gnn.utils import load_adjacency_matrix, save_model_to_path
+from gnn.models import GCN, GCRNN, SLGCN, STGCN
+from gnn.utils import load_adjacency_matrix, save_model_to_path, normalize
 
 
 def run_epoch(model, optimizer, dataloader, training=True):
@@ -62,6 +62,8 @@ if __name__ == "__main__":
         model = SLGCN(adj, args, device=DEVICE)
     elif args.model == 'RGCNN':
         model = GCRNN(adj, args, device=DEVICE)
+    elif args.model == 'STGCN':
+        model = STGCN(adj, args, device=DEVICE)
     else:
         model = GCN(adj, args, device=DEVICE)
 
