@@ -1,0 +1,20 @@
+train_file: "./data/metr_la/train_sts.npz"
+test_file: "./data/metr_la/test_sts.npz"
+val_file: "./data/metr_la/val_sts.npz"
+forecast_horizon: 1
+toy_data: False
+lr: .001
+batch_size: 16
+save_model: True
+model_name: model_001
+n_epochs: 10
+pickled_files:  "metr_la/adj_mx_la.pkl"
+model: "P3D"
+gpu: False
+
+# model parameters
+"nclass": 1
+"num_nodes": 207
+"num_features": 2
+"bottleneck_channels": 32
+"spatial_channels": 16

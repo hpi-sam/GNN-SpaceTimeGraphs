@@ -3,7 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.parameter import Parameter
 
-from gnn.layers import GlobalSLC, LocalSLC, SLConv, SLGRUCell, STGCNBlock, TimeBlock
+from gnn.layers import (GlobalSLC, LocalSLC, SLConv, SLGRUCell, STGCNBlock, TimeBlock, P3DABlock, P3DBBlock, P3DCBlock,
+                        Bottleneck)
 
 
 class GCN(nn.Module):
@@ -122,4 +123,38 @@ class STGCN(nn.Module):
         out4 = self.fully(out3.reshape((out3.shape[0], out3.shape[2], -1)))\
             .reshape(out3.shape[0], out3.shape[2], 1)
         return out4
+
+
+class P3D(nn.Module):
+    def __init__(self, adj, args, device=None):
+        super(P3D, self).__init__()
+        num_features = args.num_features
+        nclass = args.nclass
+        num_nodes = args.num_nodes
+
+        num_timesteps = 12
+        bottleneck_channels = args.bottleneck_channels
+        spatial_channels = args.spatial_channels
+
+        self.up_sample = Bottleneck(in_channels=num_features, out_channels=bottleneck_channels).to(device)
+        self.block1 = P3DABlock(in_channels=bottleneck_channels, spatial_channels=spatial_channels,
+                                out_channels=bottleneck_channels, num_nodes=num_nodes).to(device)
+        self.block2 = P3DBBlock(in_channels=bottleneck_channels, spatial_channels=spatial_channels,
+                                out_channels=bottleneck_channels, num_nodes=num_nodes).to(device)
+        self.block3 = P3DCBlock(in_channels=bottleneck_channels, spatial_channels=spatial_channels,
+                                out_channels=bottleneck_channels, num_nodes=num_nodes).to(device)
+
+        self.down_sample = Bottleneck(in_channels=bottleneck_channels, out_channels=32).to(device)
+        self.fc = nn.Linear(num_timesteps * 32, nclass).to(device)
+
+    def forward(self, x):
+        out1 = self.up_sample(x)
+        out2 = F.relu(out1 + self.block1(out1))
+        out3 = F.relu(out2 + self.block2(out2))
+        out4 = F.relu(out3 + self.block3(out3))
+        out5 = self.down_sample(out4)
+        out = self.fc(out5.reshape((out5.shape[0], out5.shape[2], -1)))\
+            .reshape(out5.shape[0], out5.shape[2], 1)
+
+        return out
 

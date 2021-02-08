@@ -197,20 +197,32 @@ class SLGRUCell(nn.Module):
 
 
 class TimeBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size=3):
+    def __init__(self, in_channels, out_channels, kernel_size=3, padding=(0, 0)):
         super(TimeBlock, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels, out_channels, (1, kernel_size))
-        self.conv2 = nn.Conv2d(in_channels, out_channels, (1, kernel_size))
-        self.conv3 = nn.Conv2d(in_channels, out_channels, (1, kernel_size))
+        self.conv1 = nn.Conv2d(in_channels, out_channels, (1, kernel_size), padding=padding)
+        self.conv2 = nn.Conv2d(in_channels, out_channels, (1, kernel_size), padding=padding)
+        self.conv3 = nn.Conv2d(in_channels, out_channels, (1, kernel_size), padding=padding)
 
-    def forward(self, X):
+    def forward(self, x):
         # Convert into NCHW format for pytorch to perform convolutions.
-        X = X.permute(0, 3, 2, 1)
-        temp = self.conv1(X) + torch.sigmoid(self.conv2(X))
-        out = F.relu(temp + self.conv3(X))
+        x = x.permute(0, 3, 2, 1)
+        temp = self.conv1(x) + torch.sigmoid(self.conv2(x))
+        out = F.relu(temp + self.conv3(x))
         # Convert back from NCHW to NHWC
         out = out.permute(0, 3, 2, 1)
         return out
+
+
+class BatchNorm(nn.Module):
+    def __init__(self, num_nodes):
+        super(BatchNorm, self).__init__()
+        self.norm = nn.BatchNorm2d(num_nodes)
+
+    def forward(self, x):
+        x = x.permute(0, 2, 3, 1)
+        x = self.norm(x)
+        x = x.permute(0, 3, 1, 2)
+        return x
 
 
 class STGCNBlock(nn.Module):
@@ -221,12 +233,81 @@ class STGCNBlock(nn.Module):
         self.spatial1 = GlobalSLC(out_channels, spatial_channels, num_nodes, act_func=F.relu)
         # self.spatial1 = GC(adj, out_channels, spatial_channels)
         self.temporal2 = TimeBlock(in_channels=spatial_channels, out_channels=out_channels)
-        self.batch_norm = nn.BatchNorm2d(num_nodes)
+        self.batch_norm = BatchNorm(num_nodes)
 
     def forward(self, x):
         t = self.temporal1(x)
         t2 = self.spatial1(t)
         t3 = self.temporal2(t2)
-        t3 = t3.permute(0, 2, 3, 1)
-        out = self.batch_norm(t3)
-        return out.permute(0, 3, 1, 2)
+        return self.batch_norm(t3)
+
+
+class Bottleneck(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(Bottleneck, self).__init__()
+        self.conv = nn.Conv2d(in_channels, out_channels, (1, 1))
+
+    def forward(self, x):
+        # Convert into NCHW format for pytorch to perform convolutions.
+        x = x.permute(0, 3, 2, 1)
+        out = self.conv(x)
+        # Convert back from NCHW to NHWC
+        out = out.permute(0, 3, 2, 1)
+        return F.relu(out)
+
+
+class P3DBlock(nn.Module):
+    def __init__(self, in_channels, spatial_channels, out_channels, num_nodes):
+        super(P3DBlock, self).__init__()
+        self.spatial = GlobalSLC(spatial_channels, spatial_channels, num_nodes, act_func=F.relu)
+        self.temporal = TimeBlock(in_channels=spatial_channels, out_channels=spatial_channels)
+        self.down_sample = Bottleneck(in_channels=in_channels, out_channels=spatial_channels)
+        self.up_sample = Bottleneck(in_channels=spatial_channels, out_channels=out_channels)
+        self.temp_up_sample = nn.Conv2d(10, 12, (1, 1))
+        self.batch_norm = BatchNorm(num_nodes)
+
+
+class P3DABlock(P3DBlock):
+    def __init__(self, in_channels, spatial_channels, out_channels, num_nodes):
+        P3DBlock.__init__(self, in_channels, spatial_channels, out_channels, num_nodes)
+
+    def forward(self, x):
+        out = self.down_sample(x)
+        out1 = self.spatial(out)
+        out2 = self.temporal(out1)
+        out3 = self.up_sample(out2)
+        out3 = F.relu(self.temp_up_sample(out3))
+        out4 = self.batch_norm(out3)
+
+        return out4
+
+
+class P3DBBlock(P3DBlock):
+    def __init__(self, in_channels, spatial_channels, out_channels, num_nodes):
+        P3DBlock.__init__(self, in_channels, spatial_channels, out_channels, num_nodes)
+
+    def forward(self, x):
+        out = self.down_sample(x)
+        out1 = self.temporal(out)
+        out2 = self.spatial(out1)
+        out3 = self.up_sample(out2)
+        out3 = F.relu(self.temp_up_sample(out3))
+        out4 = self.batch_norm(out3)
+
+        return out4
+
+
+class P3DCBlock(P3DBlock):
+    def __init__(self, in_channels, spatial_channels, out_channels, num_nodes):
+        P3DBlock.__init__(self, in_channels, spatial_channels, out_channels, num_nodes)
+
+    def forward(self, x):
+        out = self.down_sample(x)
+        out1 = self.temporal(out)
+        out1 = F.relu(self.temp_up_sample(out1))
+        out2 = self.spatial(out)
+        out3 = F.relu(out1 + out2)
+        out4 = self.up_sample(out3)
+        out5 = self.batch_norm(out4)
+
+        return out5

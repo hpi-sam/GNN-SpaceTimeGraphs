@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 from gnn.argparser import parse_arguments
 from gnn.dataset import TrafficDataset
-from gnn.models import GCN, GCRNN, SLGCN, STGCN
+from gnn.models import GCN, GCRNN, SLGCN, STGCN, P3D
 from gnn.utils import load_adjacency_matrix, save_model_to_path, normalize
 
 
@@ -21,12 +21,8 @@ def run_epoch(model, optimizer, dataloader, training=True):
     for sample_batched in bar:
         model.train()
         optimizer.zero_grad()
-        x = torch.tensor(sample_batched['features'],
-                         device=DEVICE,
-                         dtype=torch.float32)
-        y = torch.tensor(sample_batched['labels'],
-                         device=DEVICE,
-                         dtype=torch.float32)
+        x = sample_batched['features'].to(DEVICE).type(torch.float32)
+        y = sample_batched['labels'].to(DEVICE).type(torch.float32)
         output = model(x)
         output_denormalized = output * std + mu
         y_denormalized = y * std + mu
@@ -60,7 +56,7 @@ if __name__ == "__main__":
     dataset_val = TrafficDataset(args, split='val')
 
     # use data loader
-    dataloader_train = DataLoader(dataset_train, batch_size=args.batch_size, shuffle=False, num_workers=1)
+    dataloader_train = DataLoader(dataset_train, batch_size=args.batch_size, shuffle=True, num_workers=1)
     dataloader_val = DataLoader(dataset_val, batch_size=args.batch_size, shuffle=False, num_workers=1)
 
     # load adjacency matrix
@@ -74,6 +70,8 @@ if __name__ == "__main__":
         model = GCRNN(adj, args, device=DEVICE)
     elif args.model == 'STGCN':
         model = STGCN(adj, args, device=DEVICE)
+    elif args.model == 'P3D':
+        model = P3D(adj, args, device=DEVICE)
     else:
         model = GCN(adj, args, device=DEVICE)
 

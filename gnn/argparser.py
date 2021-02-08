@@ -123,6 +123,14 @@ def parse_arguments():
                         type=int,
                         default=1000,
                         help="number of units per layer (RNN)")
+    parser.add_argument('--spatial_channels',
+                        type=int,
+                        default=16,
+                        help="number of spatial channels to use in P3D")
+    parser.add_argument('--bottleneck_channels',
+                        type=int,
+                        default=32,
+                        help="number of channels before and after applying the bottleneck")
     return parser
 
 
