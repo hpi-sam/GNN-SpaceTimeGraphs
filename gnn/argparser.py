@@ -49,6 +49,7 @@ def parse_arguments():
         "timestamps. Use it for debugging purposes")
     parser.add_argument('--lr',
                         type=float,
+                        nargs='*',
                         default=LEARNING_RATE,
                         help="Learning rate for training")
     parser.add_argument('--weight_decay',

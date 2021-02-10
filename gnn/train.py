@@ -8,21 +8,22 @@ from tqdm import tqdm
 from gnn.argparser import parse_arguments
 from gnn.dataset import TrafficDataset
 from gnn.models import GCN, GCRNN, SLGCN, STGCN, P3D
-from gnn.utils import load_adjacency_matrix, save_model_to_path, normalize
+from gnn.utils import load_adjacency_matrix, save_model_to_path, normalize, get_device
 
 
 def run_epoch(model, optimizer, dataloader, training=True):
     mu, std = dataloader.dataset.mu, dataloader.dataset.std
-    mu = torch.tensor(mu, device=DEVICE)
-    std = torch.tensor(std, device=DEVICE)
+    device = model.device
+    mu = torch.tensor(mu, device=device)
+    std = torch.tensor(std, device=device)
     bar = tqdm(dataloader)
     losses = []
-    print("epoch: {}".format(epoch + 1))
+    #print("epoch: {}".format(epoch + 1))
     for sample_batched in bar:
         model.train()
         optimizer.zero_grad()
-        x = sample_batched['features'].to(DEVICE).type(torch.float32)
-        y = sample_batched['labels'].to(DEVICE).type(torch.float32)
+        x = sample_batched['features'].to(device).type(torch.float32)
+        y = sample_batched['labels'].to(device).type(torch.float32)
         output = model(x)
         output_denormalized = output * std + mu
         y_denormalized = y * std + mu
@@ -44,10 +45,7 @@ if __name__ == "__main__":
     parser = parse_arguments()
     args = parser.parse_args()
 
-    if args.gpu:
-        DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    else:
-        DEVICE = torch.device("cpu")
+    DEVICE = get_device(args.gpu)
 
     print(DEVICE)
 
