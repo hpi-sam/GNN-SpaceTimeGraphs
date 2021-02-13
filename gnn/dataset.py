@@ -21,9 +21,9 @@ class TrafficDataset(Dataset):
 
         # forecast_horizon: number of time-steps of 5 Minute to intervals to predict in the future; 3 ~ 15 Min
         # check whether we have the sequence to sequence data-set or sequence to instance dataset
-        if args.forecast_horizon >= 1 and len(self.labels_train.shape) == 4:
-            self.labels_train = self.labels_train[:, args.forecast_horizon -
-                                                  1, :, :]
+        if len(self.labels_train.shape) == 4:
+            horizon_indices = [horizon - 1 for horizon in args.forecast_horizon]
+            self.labels_train = self.labels_train[:, horizon_indices, :, :]
         # create the toy data for only 5 nodes
         if args.toy_data:
             self.features_train = self.features_train[:int(0.025 *
