@@ -130,11 +130,12 @@ class STGCN(nn.Module):
 class P3D(nn.Module):
     def __init__(self, adj, args, device=None):
         super(P3D, self).__init__()
+        self.num_out_steps = len(args.forecast_horizon)
+        num_timesteps = 12
         num_features = args.num_features
         nclass = args.nclass
         num_nodes = args.num_nodes
 
-        num_timesteps = 12
         bottleneck_channels = args.bottleneck_channels
         spatial_channels = args.spatial_channels
 
@@ -146,17 +147,14 @@ class P3D(nn.Module):
         self.block3 = P3DCBlock(in_channels=bottleneck_channels, spatial_channels=spatial_channels,
                                 out_channels=bottleneck_channels, num_nodes=num_nodes).to(device)
 
-        self.down_sample = Bottleneck(in_channels=bottleneck_channels, out_channels=32).to(device)
-        self.fc = nn.Linear(num_timesteps * 32, nclass).to(device)
+        self.fc = nn.Linear(num_timesteps * bottleneck_channels, nclass * self.num_out_steps).to(device)
 
     def forward(self, x):
         out1 = self.up_sample(x)
         out2 = F.relu(out1 + self.block1(out1))
         out3 = F.relu(out2 + self.block2(out2))
         out4 = F.relu(out3 + self.block3(out3))
-        out5 = self.down_sample(out4)
-        out = self.fc(out5.reshape((out5.shape[0], out5.shape[2], -1)))\
-            .reshape(out5.shape[0], out5.shape[2], 1)
+        out = self.fc(out4.reshape((out4.shape[0], out4.shape[2], -1)))\
+            .reshape(out4.shape[0], self.num_out_steps, out4.shape[2], 1)
 
         return out
-
