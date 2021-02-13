@@ -275,8 +275,8 @@ class P3DABlock(P3DBlock):
         out = F.relu(self.down_sample(x))
         out1 = F.relu(self.spatial(out))
         out2 = F.relu(self.temporal(out1))
-        out3 = F.relu(self.up_sample(out2))
-        out3 = F.relu(self.temp_up_sample(out3))
+        out3 = self.up_sample(out2)
+        out3 = self.temp_up_sample(out3)
         out4 = self.batch_norm(out3)
 
         return out4
@@ -288,11 +288,11 @@ class P3DBBlock(P3DBlock):
 
     def forward(self, x):
         out = F.relu(self.down_sample(x))
-        out1 = F.relu(self.temporal(out))
-        out2 = F.relu(self.temp_up_sample(out1))
+        out1 = self.temporal(out)
+        out2 = self.temp_up_sample(out1)
         out3 = F.relu(self.spatial(out))
         out4 = F.relu(out3 + out2)
-        out5 = F.relu(self.up_sample(out4))
+        out5 = self.up_sample(out4)
         out6 = self.batch_norm(out5)
 
         return out6
@@ -305,10 +305,10 @@ class P3DCBlock(P3DBlock):
     def forward(self, x):
         out = F.relu(self.down_sample(x))
         out1 = F.relu(self.spatial(out))
-        out2 = F.relu(self.temporal(out1))
-        out3 = F.relu(self.temp_up_sample(out2))
+        out2 = self.temporal(out1)
+        out3 = self.temp_up_sample(out2)
         out3 = F.relu(out1 + out3)
-        out4 = F.relu(self.up_sample(out3))
+        out4 = self.up_sample(out3)
         out5 = self.batch_norm(out4)
 
         return out5
