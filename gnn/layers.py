@@ -272,10 +272,10 @@ class P3DABlock(P3DBlock):
         P3DBlock.__init__(self, in_channels, spatial_channels, out_channels, num_nodes)
 
     def forward(self, x):
-        out = self.down_sample(x)
-        out1 = self.spatial(out)
-        out2 = self.temporal(out1)
-        out3 = self.up_sample(out2)
+        out = F.relu(self.down_sample(x))
+        out1 = F.relu(self.spatial(out))
+        out2 = F.relu(self.temporal(out1))
+        out3 = F.relu(self.up_sample(out2))
         out3 = F.relu(self.temp_up_sample(out3))
         out4 = self.batch_norm(out3)
 
@@ -287,14 +287,15 @@ class P3DBBlock(P3DBlock):
         P3DBlock.__init__(self, in_channels, spatial_channels, out_channels, num_nodes)
 
     def forward(self, x):
-        out = self.down_sample(x)
-        out1 = self.temporal(out)
-        out2 = self.spatial(out1)
-        out3 = self.up_sample(out2)
-        out3 = F.relu(self.temp_up_sample(out3))
-        out4 = self.batch_norm(out3)
+        out = F.relu(self.down_sample(x))
+        out1 = F.relu(self.temporal(out))
+        out2 = F.relu(self.temp_up_sample(out1))
+        out3 = F.relu(self.spatial(out))
+        out4 = F.relu(out3 + out2)
+        out5 = F.relu(self.up_sample(out4))
+        out6 = self.batch_norm(out5)
 
-        return out4
+        return out6
 
 
 class P3DCBlock(P3DBlock):
@@ -302,12 +303,12 @@ class P3DCBlock(P3DBlock):
         P3DBlock.__init__(self, in_channels, spatial_channels, out_channels, num_nodes)
 
     def forward(self, x):
-        out = self.down_sample(x)
-        out1 = self.temporal(out)
-        out1 = F.relu(self.temp_up_sample(out1))
-        out2 = self.spatial(out)
-        out3 = F.relu(out1 + out2)
-        out4 = self.up_sample(out3)
+        out = F.relu(self.down_sample(x))
+        out1 = F.relu(self.spatial(out))
+        out2 = F.relu(self.temporal(out1))
+        out3 = F.relu(self.temp_up_sample(out2))
+        out3 = F.relu(out1 + out3)
+        out4 = F.relu(self.up_sample(out3))
         out5 = self.batch_norm(out4)
 
         return out5
