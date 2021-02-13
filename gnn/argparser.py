@@ -83,7 +83,7 @@ def parse_arguments():
                         help="The name of the model that should be used")
     parser.add_argument('--forecast_horizon',
                         type=int,
-                        default=1,
+                        nargs='+',
                         help="number of steps to predict into the future")
     parser.add_argument('--n_hid',
                         type=int,
