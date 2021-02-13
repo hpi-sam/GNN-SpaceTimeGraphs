@@ -132,6 +132,10 @@ def parse_arguments():
                         type=int,
                         default=32,
                         help="number of channels before and after applying the bottleneck")
+    parser.add_argument('--dropout',
+                        type=float,
+                        default=0.2,
+                        help="Amount of dropout to apply")
     return parser
 
 
