@@ -1,7 +1,7 @@
 train_file: "./data/metr_la/train_sts.npz"
 test_file: "./data/metr_la/test_sts.npz"
 val_file: "./data/metr_la/val_sts.npz"
-forecast_horizon: 1
+forecast_horizon: [1, 3]
 toy_data: False
 lr: .001
 batch_size: 16
@@ -18,3 +18,4 @@ gpu: False
 "num_features": 2
 "bottleneck_channels": 32
 "spatial_channels": 16
+"dropout": 0.2

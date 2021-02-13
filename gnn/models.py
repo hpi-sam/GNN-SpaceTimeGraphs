@@ -146,6 +146,7 @@ class P3D(nn.Module):
                                 out_channels=bottleneck_channels, num_nodes=num_nodes).to(device)
 
         self.fc = nn.Linear(num_timesteps * bottleneck_channels, nclass * self.num_out_steps).to(device)
+        self.dropout = nn.Dropout(p=args.dropout)
 
     def forward(self, x):
         out1 = self.up_sample(x)
@@ -154,5 +155,6 @@ class P3D(nn.Module):
         out4 = F.relu(out3 + self.block3(out3))
         out = self.fc(out4.reshape((out4.shape[0], out4.shape[2], -1)))\
             .reshape(out4.shape[0], self.num_out_steps, out4.shape[2], 1)
+        out = self.dropout(out)
 
         return out
