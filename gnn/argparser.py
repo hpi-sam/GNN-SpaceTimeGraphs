@@ -49,7 +49,6 @@ def parse_arguments():
         "timestamps. Use it for debugging purposes")
     parser.add_argument('--lr',
                         type=float,
-                        nargs='*',
                         default=LEARNING_RATE,
                         help="Learning rate for training")
     parser.add_argument('--weight_decay',
@@ -136,6 +135,20 @@ def parse_arguments():
                         type=float,
                         default=0.2,
                         help="Amount of dropout to apply")
+    parser.add_argument('--h_bottleneck_channels',
+                        type=int,
+                        nargs='+',
+                        )
+
+    parser.add_argument('--h_batch_size',
+                        type=int,
+                        nargs='+',
+                        )
+
+    parser.add_argument('--h_lr',
+                        type=float,
+                        nargs='+',
+                        )
     return parser
 
 

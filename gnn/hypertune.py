@@ -7,6 +7,8 @@ import torch.optim as optim
 from gnn.train import run_epoch
 import optuna
 import logging
+import inspect
+import re
 
 logging.basicConfig(level=logging.INFO, format='# %(message)s')
 logger = logging.getLogger(__name__)
@@ -14,25 +16,41 @@ logger = logging.getLogger(__name__)
 class ObjectiveCreator:
     def __init__(self, args):
         self.args = args
-        device = get_device(args.gpu)
+        self.device = get_device(args.gpu)
         dataset_train = TrafficDataset(args, split='train')
         dataset_val = TrafficDataset(args, split='val')
         self.dataloader_train = DataLoader(dataset_train, batch_size=args.batch_size, shuffle=True, num_workers=1)
         self.dataloader_val = DataLoader(dataset_val, batch_size=args.batch_size, shuffle=False, num_workers=1)
-        adj = load_adjacency_matrix(args, device)
-        self.model = getattr(models, args.model)(adj, args, device)
+        self.adj = load_adjacency_matrix(args, self.device)
+        self.ht_var = re.compile("^h_")
+
+    @staticmethod
+    def get_list_type(lst):
+        types = set([type(element) for element in lst])
+        if len(types) > 1:
+            raise TypeError("List has inconsistent types")
+        return types.pop()
+
+    def get_tunable_parameters(self, trial, args):
+        type_to_suggestion_map = {int: trial.suggest_int, float: trial.suggest_float}
+        tune_param = {self.ht_var.sub("", key): type_to_suggestion_map[self.get_list_type(val)](key, *val)
+                      for (key, val) in inspect.getmembers(args) if self.ht_var.match(key)}
+        return tune_param
+
 
     def objective(self, trial):
-        optimizer = optim.Adam(self.model.parameters(), lr=trial.suggest_uniform("lr", *self.args.lr))
+        {setattr(self.args, param, value) for (param, value) in self.get_tunable_parameters(trial, self.args).items()}
+        model = getattr(models, args.model)(self.adj, self.args, self.device)
+        optimizer = optim.Adam(model.parameters(), lr=self.args.lr)
         # Training
         for epoch in range(5):
 
             logger.info(f"epoch: {epoch}")
             logger.info("train")
-            train_loss = run_epoch(self.model, optimizer, self.dataloader_train)
+            train_loss = run_epoch(model, optimizer, self.dataloader_train)
             logger.info('Mean train-loss over batch: {:.4f}'.format(train_loss))
             logger.info("val")
-            val_loss = run_epoch(self.model, optimizer, self.dataloader_val, training=False)
+            val_loss = run_epoch(model, optimizer, self.dataloader_val, training=False)
             logger.info('Mean validation-loss over batch: {:.4f}'.format(val_loss))
             trial.report(val_loss, epoch)
             if trial.should_prune():

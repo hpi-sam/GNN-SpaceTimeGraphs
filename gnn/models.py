@@ -149,6 +149,7 @@ class P3D(nn.Module):
 
         self.fc = nn.Linear(num_timesteps * bottleneck_channels, nclass * self.num_out_steps).to(device)
         self.dropout = nn.Dropout(p=args.dropout)
+        self.device = device
 
     def forward(self, x):
         out1 = self.up_sample(x)
