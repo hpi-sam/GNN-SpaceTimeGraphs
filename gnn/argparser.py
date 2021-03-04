@@ -135,6 +135,7 @@ def parse_arguments():
                         type=float,
                         default=0.2,
                         help="Amount of dropout to apply")
+
     parser.add_argument('--h_bottleneck_channels',
                         type=int,
                         nargs='+',
@@ -149,6 +150,7 @@ def parse_arguments():
                         type=float,
                         nargs='+',
                         )
+
     return parser
 
 
