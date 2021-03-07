@@ -8,6 +8,7 @@ Additionally we use a latent correlation layer as proposed by Chao et. al (NeurI
 To keep the variants of the spectral convolution comparable the temporal modeling component stays fixed.
 The contributions of this work can be summarized answering the following two research questions (RQ):
 - RQ1: How does learning the graph structure affect the precision of predictions in graph neural networks for traffic forecasting?
-- RQ2: Do graph convolution operators benefit from having the graph structure as a learnable parameter? 
+- RQ2: Do graph convolution operators benefit from having the graph structure as a learnable parameter?
+
 We employ two widely used benchmark datasets and compare different setups to answer RQ1 and RQ2. We were able to reproduce results shown by Zhang et. al and extend the comparison to models that utilize a latent correlation layer.
 
