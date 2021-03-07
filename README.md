@@ -1,28 +1,13 @@
 # GNN-SpaceTimeGraphs
 
 ## Abstract
-For modern transportation systems such as highway- or railway networks, traffic
-forecasting is a crucial tool for planning and operation. For instance, traffic
-flow prediction is used in navigation systems like "Google-Maps"[cite] to
-estimate travel time and propose optimal driving routes. In town planning,
-traffic analysis can help to identify where road-infrastructure is overloaded
-and thus determine where new roads need to be built. 
-
-Predicting traffic speed on highway- and road networks can be organically
-formulated as a graph learning problem. Here, nodes represent sensors that
-capture speed of the traffic in different locations of a network. Edges are
-denoted by road segments which connect the sensors. Previous works have
-employed graph neural networks to solve this learning problem (cite). While
-early “Graph Neural Network” (GNN) architectures suffered from high
-computational complexity [cite early GCN model], later works concentrated on
-capturing spatial and temporal patterns simultaneously [DCRNN, Traffic GCN].
-
-In this work we employ three widely used benchmark traffic dataset to compare
-classical graph- and deep learning algorithms specific to the task of traffic
-forecasting. As a result of these comparisons, we identify limitations to the
-models and propose a novel approach to capture spatial and temporal
-dependencies more efficiently. Additionally, we study how the construction of
-the graph structure influences the performance of GNNs. Based on these results
-we discuss how aforementioned methods can be used to infer traffic flow from
-traffic speed prediction.
+In Intelligent Transport Systems (ITS), traffic forecasting is a crucial tool to improve road security, planning and operation. Before using neural architectures, autoregressive models were employed for time-series forecasting which faced difficulties to model highly non-linear and spatially dependent traffic data.
+Speed sensors in road networks are arranged in graph like structures, therefore, spatial and temporal dependencies are often modeled based on traffic graphs. Because relationships of sensors are modeled in space and time concurrently, the effectiveness of each mechanisms needs to be isolated when comparing neural network architectures. Contrary to a formulation where edges in a traffic graph are predefined through physical road connections or closeness in space, there is a trend towards refining the structure of traffic graphs during the learning process.
+We propose a series of experiments based on spectral graph convolution using a concept introduced by Zhang et. al (AAAI 2020), which regards the graph laplacian as a learnable parameter. We compare this setup to one that uses a static laplacian.
+Additionally we use a latent correlation layer as proposed by Chao et. al (NeurIPS 2020) as another way of learning the laplacian.
+To keep the variants of the spectral convolution comparable the temporal modeling component stays fixed.
+The contributions of this work can be summarized answering the following two research questions (RQ):
+- RQ1: How does learning the graph structure affect the precision of predictions in graph neural networks for traffic forecasting?
+- RQ2: Do graph convolution operators benefit from having the graph structure as a learnable parameter? 
+We employ two widely used benchmark datasets and compare different setups to answer RQ1 and RQ2. We were able to reproduce results shown by Zhang et. al and extend the comparison to models that utilize a latent correlation layer.
 
