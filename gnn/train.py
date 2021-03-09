@@ -8,7 +8,7 @@ from tqdm import tqdm
 from gnn.argparser import parse_arguments
 from gnn.dataset import TrafficDataset
 from gnn.models import GCN, GCRNN, SLGCN, STGCN, P3D
-from gnn.utils import load_adjacency_matrix, save_model_to_path, normalize
+from gnn.utils import load_adjacency_matrix, save_model_to_path, normalize, compute_normalized_laplacian
 
 
 def run_epoch(model, optimizer, dataloader, training=True):
@@ -61,6 +61,7 @@ if __name__ == "__main__":
 
     # load adjacency matrix
     adj = load_adjacency_matrix(args, DEVICE)
+    L = compute_normalized_laplacian(adj)
 
     # Model and optimizer
     # TODO: model.to(device) instead of passing device as argument

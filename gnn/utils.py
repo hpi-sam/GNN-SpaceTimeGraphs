@@ -40,7 +40,7 @@ def generate_graph_seq2seq_io_data(df,
     if add_time_in_day:
         time_ind = (df.index.values -
                     df.index.values.astype("datetime64[D]")) / np.timedelta64(
-                        1, "D")
+            1, "D")
         time_in_day = np.tile(time_ind, [1, num_nodes, 1]).transpose((2, 1, 0))
         data_list.append(time_in_day)
     if add_day_in_week:
@@ -74,7 +74,7 @@ def generate_train_val_test_inst_to_inst(args):
     if args.add_time_in_day:
         time_ind = (df.index.values -
                     df.index.values.astype("datetime64[D]")) / np.timedelta64(
-                        1, "D")
+            1, "D")
         time_in_day = np.tile(time_ind, [1, num_nodes, 1]).transpose((2, 1, 0))
         data_list.append(time_in_day)
 
@@ -140,7 +140,7 @@ def generate_train_val_test(args):
     # 0 is the latest observed sample.
     x_offsets = np.sort(
         # np.concatenate(([-week_size + 1, -day_size + 1], np.arange(-11, 1, 1)))
-        np.concatenate((np.arange(-11, 1, 1), )))
+        np.concatenate((np.arange(-11, 1, 1),)))
     # Predict the next one hour
     y_offsets = np.sort(np.arange(1, 13, 1))
     # x: (num_samples, input_length, num_nodes, input_dim)
@@ -196,6 +196,25 @@ def normalize(mx):
     return mx
 
 
+def compute_normalized_laplacian(adj):
+    """ Compute L = D^{-1/2}(D-A)D^{-1/2}, where D denotes the degree matrix, and A is the adjacency matrix
+    and L is the normalized laplacian
+    """
+    adj_sparse = sp.coo_matrix(adj.cpu().numpy())
+    d = np.array(adj_sparse.sum(1))
+    d_inv_sqrt = np.power(d, -1 / 2).flatten()
+    d_inv_sqrt[np.isinf(d_inv_sqrt)] = 0
+    d_inv_sqrt = sp.diags(d_inv_sqrt)
+    lhs = sp.eye(adj_sparse.shape[0])
+    rhs = adj_sparse.dot(d_inv_sqrt).transpose().dot(d_inv_sqrt).tocoo()
+    normalized_laplacian = (lhs - rhs).tocoo()
+    normalized_laplacian = torch.sparse.LongTensor(
+        torch.LongTensor([normalized_laplacian.row.tolist(), normalized_laplacian.col.tolist()]),
+        torch.LongTensor(normalized_laplacian.data.astype(np.int32))
+    )
+    return normalized_laplacian
+
+
 def generate_knn_ids(dist, k):
     return torch.argsort(dist, axis=-1)[:, -k - 1:-1]
 
@@ -226,21 +245,22 @@ def save_model_to_path(args, model, model_save_path="./saved_models/"):
 
     torch.save(model.state_dict(), filepath)
 
+
 def cycle_encode(time_stamp):
     time_stamp = datetime.fromtimestamp(time_stamp)
-    time_feats = [(time_stamp.month, 12),
-                  (time_stamp.day, 31),
-                  (time_stamp.weekday(), 6),
-                  (time_stamp.hour, 23),
-                  (time_stamp.minute, 59),
-                  (time_stamp.second, 59)]
+    #   time_feats = [(time_stamp.month, 12),
+    #                 (time_stamp.day, 31),
+    #                 (time_stamp.weekday(), 6),
+    #                 (time_stamp.hour, 23),
+    #                 (time_stamp.minute, 59),
+    #                 (time_stamp.second, 59)]
     time_feats = [(time_stamp.month, 12), (time_stamp.day, 31),
                   (time_stamp.weekday(), 6), (time_stamp.hour, 23),
                   (time_stamp.minute, 59), (time_stamp.second, 59)]
     encoded = list()
     for time_feat, period in time_feats:
-        sin_feat = np.sin(time_feat/period)
-        cos_feat = np.cos(time_feat/period)
+        # sin_feat = np.sin(time_feat/period)
+        # cos_feat = np.cos(time_feat/period)
         sin_feat = np.sin(time_feat / period)
         cos_feat = np.cos(time_feat / period)
         encoded = encoded + [sin_feat, cos_feat]
