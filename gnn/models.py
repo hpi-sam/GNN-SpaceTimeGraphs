@@ -3,8 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.parameter import Parameter
 
-from gnn.layers import (GlobalSLC, LocalSLC, SLConv, SLGRUCell, STGCNBlock, TimeBlock, P3DABlock, P3DBBlock, P3DCBlock,
+from gnn.layers import (GlobalSLC, GlobalLaplacianSLC, LocalSLC, SLConv, SLGRUCell, STGCNBlock, TimeBlock, P3DABlock, P3DBBlock, P3DCBlock,
                         Bottleneck)
+from gnn.utils import compute_normalized_laplacian
 
 
 class GCN(nn.Module):
@@ -70,7 +71,7 @@ class GCRNN(nn.Module):
 
 
 class SLGCN(nn.Module):
-    def __init__(self, adj, args, device=None):
+    def __init__(self, adj, args, use_laplacian=True, device=None):
         super(SLGCN, self).__init__()
         self.adj = adj
         # model parameters
@@ -86,7 +87,9 @@ class SLGCN(nn.Module):
         self.l_layer_list = nn.ModuleList()
         for idx, layer_multiplier in enumerate(nhid_multipliers):
             out_dim = nhid * layer_multiplier
-            self.g_layer_list.insert(idx, GlobalSLC(num_features, out_dim, num_nodes, act_func=F.leaky_relu).to(device))
+            if use_laplacian:
+                self.g_layer_list.insert(idx,
+                    GlobalLaplacianSLC(num_features, out_dim, num_nodes, adj, act_func=F.leaky_relu))
             self.l_layer_list.insert(idx, LocalSLC(adj, num_features, out_dim, num_nodes, k, act_func=F.leaky_relu).to(
                 device))
             num_features = out_dim

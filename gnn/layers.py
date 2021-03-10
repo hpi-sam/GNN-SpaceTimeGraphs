@@ -6,7 +6,7 @@ from torch.functional import F
 from torch.nn.parameter import Parameter
 
 from gnn.argparser import parse_arguments
-from gnn.utils import generate_knn_ids
+from gnn.utils import generate_knn_ids, compute_normalized_laplacian
 
 parser = parse_arguments()
 args = parser.parse_args()
@@ -61,6 +61,73 @@ class SLConv(nn.Module):
         return self.__class__.__name__ + ' (' \
                + str(self.c_in) + ' -> ' \
                + str(self.c_out) + ')'
+
+class GlobalLaplacianSLC(nn.Module):
+    def __init__(self, c_in, c_out, num_nodes, adj, cs=6, cd=6, act_func=None):
+        super(GlobalLaplacianSLC, self).__init__()
+        self.adj = compute_normalized_laplacian(adj)
+        self.c_in = c_in
+        self.c_out = c_out
+        self.num_nodes = num_nodes
+        self.cs = cs
+        self.cd = cd
+
+        # convolution parameters
+        self.ws = adj
+        self.wp = Parameter(torch.rand(c_in, c_in))
+        self.ts = Parameter(torch.rand((cs, c_in, c_out)))
+        self.td = Parameter(torch.rand((cd, c_in, c_out)))
+        self.param_list = [self.ws, self.wp, self.ts, self.td]
+
+        self.t0 = torch.eye(self.num_nodes, self.num_nodes, device=DEVICE)
+        self.act_func = act_func
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        for parameter in self.param_list:
+            stdv = .1 / math.sqrt(parameter.size(1))
+            parameter.data.uniform_(-stdv, stdv)
+
+    def forward(self, x):
+        """
+        Spatial Graph Convolution using the Global Structure Learning architecture.
+
+        :param x: graph signal at time [t-time_steps + 1,...,t] (batch_size, time_steps, num_nodes, c_in)
+        :return: convolved signal at time [t-time_steps + 1,...,t] (batch_size, time_steps, num_nodes, c_out)
+        """
+        # (num_nodes, num_nodes) x (batch_size, num_nodes, in_feat) x (c_in, c_out)
+        out = torch.matmul(torch.matmul(self.t0, x), self.ts[0])  # (batch_size, num_nodes, c_out)
+
+        # computation of static graph structure convolution
+        out_s = out + torch.matmul(torch.matmul(self.ws, x), self.ts[1])
+        tk_prev = self.ws
+        tk = 2. * torch.matmul(self.ws, self.ws) - self.t0
+        for k in range(2, self.cs):
+            out_s = out_s + torch.matmul(torch.matmul(tk, x), self.ts[k])
+            tk = 2. * torch.matmul(self.ws, tk) - tk_prev
+
+        # computation of dynamical graph structure convolution
+        if len(x.shape) == 4:
+            wd = torch.matmul(x, torch.matmul(self.wp, torch.transpose(x, 2, 3)))
+        else:
+            wd = torch.matmul(x, torch.matmul(self.wp, torch.transpose(x, 1, 2)))
+        # normalize wd -> to get rid of exploding gradients
+        wd = wd + torch.min(wd)
+        wd = wd / torch.max(wd) / self.num_nodes**2
+
+        out_d = out + torch.matmul(torch.matmul(wd, x), self.td[1])
+        tk_prev = wd
+        tk = 2. * torch.matmul(wd, wd) - self.t0
+        for k in range(2, self.cd):
+            out_d = out_d + torch.matmul(torch.matmul(tk, x), self.td[k])
+            tk = 2. * torch.matmul(wd, tk) - tk_prev
+
+        if self.act_func:
+            out_s = self.act_func(out_s)
+            out_d = self.act_func(out_d)
+
+        output = out_s + out_d
+        return output
 
 
 class GlobalSLC(nn.Module):

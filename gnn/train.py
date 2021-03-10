@@ -61,12 +61,12 @@ if __name__ == "__main__":
 
     # load adjacency matrix
     adj = load_adjacency_matrix(args, DEVICE)
-    L = compute_normalized_laplacian(adj)
-
+#    adj = compute_normalized_laplacian(adj)
     # Model and optimizer
     # TODO: model.to(device) instead of passing device as argument
     if args.model == 'SLGCN':
-        model = SLGCN(adj, args, device=DEVICE)
+        # using the laplacian
+        model = SLGCN(adj, args, use_laplacian=True, device=DEVICE)
     elif args.model == 'RGCNN':
         model = GCRNN(adj, args, device=DEVICE)
     elif args.model == 'STGCN':
