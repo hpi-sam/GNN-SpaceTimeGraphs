@@ -80,6 +80,7 @@ class SLGCN(nn.Module):
         nclass = args.nclass
         num_nodes = args.num_nodes
         k = args.k
+        self.device = device
 
         # layers
         self.g_layer_list = nn.ModuleList()
@@ -115,6 +116,7 @@ class STGCN(nn.Module):
                                  spatial_channels=16, num_nodes=num_nodes, adj=adj).to(device)
         self.last_temporal = TimeBlock(in_channels=64, out_channels=64).to(device)
         self.fully = nn.Linear((num_timesteps - 2 * 5) * 64, nclass).to(device)
+        self.device = device
 
     def forward(self, x):
         out1 = self.block1(x)
@@ -147,6 +149,7 @@ class P3D(nn.Module):
 
         self.fc = nn.Linear(num_timesteps * bottleneck_channels, nclass * self.num_out_steps).to(device)
         self.dropout = nn.Dropout(p=args.dropout)
+        self.device = device
 
     def forward(self, x):
         out1 = self.up_sample(x)

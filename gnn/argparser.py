@@ -135,6 +135,22 @@ def parse_arguments():
                         type=float,
                         default=0.2,
                         help="Amount of dropout to apply")
+
+    parser.add_argument('--h_bottleneck_channels',
+                        type=int,
+                        nargs='+',
+                        )
+
+    parser.add_argument('--h_batch_size',
+                        type=int,
+                        nargs='+',
+                        )
+
+    parser.add_argument('--h_lr',
+                        type=float,
+                        nargs='+',
+                        )
+
     return parser
 
 

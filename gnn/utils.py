@@ -226,25 +226,13 @@ def save_model_to_path(args, model, model_save_path="./saved_models/"):
 
     torch.save(model.state_dict(), filepath)
 
-def cycle_encode(time_stamp):
-    time_stamp = datetime.fromtimestamp(time_stamp)
-    time_feats = [(time_stamp.month, 12),
-                  (time_stamp.day, 31),
-                  (time_stamp.weekday(), 6),
-                  (time_stamp.hour, 23),
-                  (time_stamp.minute, 59),
-                  (time_stamp.second, 59)]
-    time_feats = [(time_stamp.month, 12), (time_stamp.day, 31),
-                  (time_stamp.weekday(), 6), (time_stamp.hour, 23),
-                  (time_stamp.minute, 59), (time_stamp.second, 59)]
-    encoded = list()
-    for time_feat, period in time_feats:
-        sin_feat = np.sin(time_feat/period)
-        cos_feat = np.cos(time_feat/period)
-        sin_feat = np.sin(time_feat / period)
-        cos_feat = np.cos(time_feat / period)
-        encoded = encoded + [sin_feat, cos_feat]
-    return encoded
+
+def get_device(gpu: bool = True):
+    if gpu:
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    else:
+        device = torch.device("cpu")
+    return device
 
 
 def main(args):
