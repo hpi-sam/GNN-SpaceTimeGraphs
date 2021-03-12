@@ -196,6 +196,15 @@ def normalize(mx):
     return mx
 
 
+def get_laplacian(adj):
+    """ Compute L = D^{-1/2}(D-A)D^{-1/2}, where D denotes the degree matrix, and A is the adjacency matrix
+    and L is the normalized laplacian
+    """
+    d = torch.diag(torch.sum(adj, dim=-1)) ** (-1 / 2)
+    laplacian = torch.eye(adj.size(0), device=adj.device, dtype=adj.dtype) - torch.mm(torch.mm(d, adj), d)
+    return laplacian
+
+
 def generate_knn_ids(dist, k):
     return torch.argsort(dist, axis=-1)[:, -k - 1:-1]
 

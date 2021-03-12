@@ -140,11 +140,11 @@ class P3D(nn.Module):
         spatial_channels = args.spatial_channels
 
         self.up_sample = Bottleneck(in_channels=num_features, out_channels=bottleneck_channels).to(device)
-        self.block1 = P3DABlock(in_channels=bottleneck_channels, spatial_channels=spatial_channels,
+        self.block1 = P3DABlock(adj=adj, args=args, in_channels=bottleneck_channels, spatial_channels=spatial_channels,
                                 out_channels=bottleneck_channels, num_nodes=num_nodes).to(device)
-        self.block2 = P3DBBlock(in_channels=bottleneck_channels, spatial_channels=spatial_channels,
+        self.block2 = P3DBBlock(adj=adj, args=args, in_channels=bottleneck_channels, spatial_channels=spatial_channels,
                                 out_channels=bottleneck_channels, num_nodes=num_nodes).to(device)
-        self.block3 = P3DCBlock(in_channels=bottleneck_channels, spatial_channels=spatial_channels,
+        self.block3 = P3DCBlock(adj=adj, args=args, in_channels=bottleneck_channels, spatial_channels=spatial_channels,
                                 out_channels=bottleneck_channels, num_nodes=num_nodes).to(device)
 
         self.fc = nn.Linear(num_timesteps * bottleneck_channels, nclass * self.num_out_steps).to(device)

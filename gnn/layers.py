@@ -6,7 +6,7 @@ from torch.functional import F
 from torch.nn.parameter import Parameter
 
 from gnn.argparser import parse_arguments
-from gnn.utils import generate_knn_ids
+from gnn.utils import generate_knn_ids, get_laplacian
 
 parser = parse_arguments()
 args = parser.parse_args()
@@ -19,11 +19,15 @@ else:
 
 class GC(nn.Module):
     def __init__(self, adj, c_in, c_out):
-        super(GC, self).__init__()
+        """ Graph Convolution operator that sums over the neighbors
 
+        :param adj: Normalized adjacency matrix with added self connections
+        :param c_in: number of input channels
+        :param c_out: number of output channels
+        """
+        super(GC, self).__init__()
         self.adj = adj
         self.th = nn.Parameter(torch.FloatTensor(c_in, c_out))
-
         self.reset_parameters()
 
     def forward(self, x):
@@ -32,10 +36,13 @@ class GC(nn.Module):
         return F.relu(out).permute(0, 2, 1, 3)
 
     def reset_parameters(self):
+        """ Applies z-score normalization"""
         stdv = 1. / math.sqrt(self.th.shape[1])
         self.th.data.uniform_(-stdv, stdv)
 
 
+# Has only been used when studying the "Structure Learning Convolution" and will be replaced by GlobalSLC and LocalSLC
+@DeprecationWarning
 class SLConv(nn.Module):
     def __init__(self, c_in, c_out, act_func=None):
         super(SLConv, self).__init__()
@@ -46,6 +53,7 @@ class SLConv(nn.Module):
         self.act_func = act_func
 
     def reset_parameters(self):
+        """ Applies z-score normalization"""
         stdv = 1. / math.sqrt(self.weight.size(1))
         self.weight.data.uniform_(-stdv, stdv)
 
@@ -63,8 +71,56 @@ class SLConv(nn.Module):
                + str(self.c_out) + ')'
 
 
+class SGC(nn.Module):
+    def __init__(self, adj, args, c_in, c_out, num_nodes, cs=6, act_func=None):
+        super(SGC, self).__init__()
+        self.c_in = c_in
+        self.c_out = c_out
+        self.num_nodes = num_nodes
+        self.cs = cs
+
+        # convolution parameters
+        if args.learnable_l:
+            self.ws = Parameter(get_laplacian(adj))
+        else:
+            self.ws = get_laplacian(adj)
+        self.ts = Parameter(torch.rand((cs, c_in, c_out)))
+        self.param_list = [self.ws, self.ts]
+
+        self.t0 = torch.eye(self.num_nodes, self.num_nodes, device=DEVICE)
+        self.act_func = act_func
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        for parameter in self.param_list:
+            stdv = .1 / math.sqrt(parameter.size(1))
+            parameter.data.uniform_(-stdv, stdv)
+
+    def forward(self, x):
+        """
+        Spectral Graph Convolution operator approximated with Chebyshev polynomials
+
+        :param x: graph signal at time [t-time_steps + 1,...,t] (batch_size, time_steps, num_nodes, c_in)
+        :return: convolved signal at time [t-time_steps + 1,...,t] (batch_size, time_steps, num_nodes, c_out)
+        """
+        # (num_nodes, num_nodes) x (batch_size, num_nodes, in_feat) x (c_in, c_out)
+        out = torch.matmul(torch.matmul(self.t0, x), self.ts[0])  # (batch_size, num_nodes, c_out)
+
+        # computation of static graph structure convolution
+        out = out + torch.matmul(torch.matmul(self.ws, x), self.ts[1])
+        tk_prev = self.ws
+        tk = 2. * torch.matmul(self.ws, self.ws) - self.t0
+        for k in range(2, self.cs):
+            out = out + torch.matmul(torch.matmul(tk, x), self.ts[k])
+            tk = 2. * torch.matmul(self.ws, tk) - tk_prev
+
+        if self.act_func:
+            out = self.act_func(out)
+        return out
+
+
 class GlobalSLC(nn.Module):
-    def __init__(self, c_in, c_out, num_nodes, cs=6, cd=6, act_func=None):
+    def __init__(self, adj, args, c_in, c_out, num_nodes, cs=6, cd=6, act_func=None):
         super(GlobalSLC, self).__init__()
         self.c_in = c_in
         self.c_out = c_out
@@ -73,15 +129,16 @@ class GlobalSLC(nn.Module):
         self.cd = cd
 
         # convolution parameters
-        self.ws = Parameter(torch.rand(self.num_nodes, self.num_nodes))
         self.wp = Parameter(torch.rand(c_in, c_in))
-        self.ts = Parameter(torch.rand((cs, c_in, c_out)))
         self.td = Parameter(torch.rand((cd, c_in, c_out)))
-        self.param_list = [self.ws, self.wp, self.ts, self.td]
+        self.param_list = [self.wp, self.td]
 
         self.t0 = torch.eye(self.num_nodes, self.num_nodes, device=DEVICE)
         self.act_func = act_func
         self.reset_parameters()
+
+        # spectral graph convolution with static graph structure
+        self.sgc = SGC(adj, args, c_in, c_out, num_nodes, cs, act_func=act_func)
 
     def reset_parameters(self):
         for parameter in self.param_list:
@@ -95,16 +152,10 @@ class GlobalSLC(nn.Module):
         :param x: graph signal at time [t-time_steps + 1,...,t] (batch_size, time_steps, num_nodes, c_in)
         :return: convolved signal at time [t-time_steps + 1,...,t] (batch_size, time_steps, num_nodes, c_out)
         """
-        # (num_nodes, num_nodes) x (batch_size, num_nodes, in_feat) x (c_in, c_out)
-        out = torch.matmul(torch.matmul(self.t0, x), self.ts[0])  # (batch_size, num_nodes, c_out)
+        out_s = self.sgc(x)
 
-        # computation of static graph structure convolution
-        out_s = out + torch.matmul(torch.matmul(self.ws, x), self.ts[1])
-        tk_prev = self.ws
-        tk = 2. * torch.matmul(self.ws, self.ws) - self.t0
-        for k in range(2, self.cs):
-            out_s = out_s + torch.matmul(torch.matmul(tk, x), self.ts[k])
-            tk = 2. * torch.matmul(self.ws, tk) - tk_prev
+        # (num_nodes, num_nodes) x (batch_size, num_nodes, in_feat) x (c_in, c_out)
+        out = torch.matmul(torch.matmul(self.t0, x), self.td[0])  # (batch_size, num_nodes, c_out)
 
         # computation of dynamical graph structure convolution
         if len(x.shape) == 4:
@@ -173,7 +224,8 @@ class LocalSLC(nn.Module):
 
 class SLGRUCell(nn.Module):
     def __init__(self, num_units, adj, num_nodes, input_dim,
-                 hidden_state_size):
+                 hidden_state_size, gconv=SLConv):
+        """ GRU Cell that integrates Graph Convolutions into the gating mechanisms"""
         super().__init__()
         self._activation = torch.tanh
         self.adj = adj
@@ -181,9 +233,9 @@ class SLGRUCell(nn.Module):
         self._num_nodes = num_nodes
         self._input_dim = input_dim
         self._hidden_state_size = hidden_state_size
-        self.gc1 = SLConv(input_dim + hidden_state_size, hidden_state_size)
-        self.gc2 = SLConv(input_dim + hidden_state_size, hidden_state_size)
-        self.gc3 = SLConv(input_dim + hidden_state_size, hidden_state_size)
+        self.gc1 = gconv(input_dim + hidden_state_size, hidden_state_size)
+        self.gc2 = gconv(input_dim + hidden_state_size, hidden_state_size)
+        self.gc3 = gconv(input_dim + hidden_state_size, hidden_state_size)
 
     def forward(self, inputs, hx, S):
         x = torch.cat([inputs, hx], dim=2)  # (batch_size, num_nodes, num_features+num_hidden_features)
@@ -198,6 +250,13 @@ class SLGRUCell(nn.Module):
 
 class TimeBlock(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=3, padding=(0, 0)):
+        """ 1-D Convolution over time
+
+        :param in_channels: number of time-channels in the input
+        :param out_channels: number of time-channels in the output
+        :param kernel_size: second dimension of the kernel size. Kernel will have shape (1, kernel_size)
+        :param padding: optional padding.
+        """
         super(TimeBlock, self).__init__()
         self.conv1 = nn.Conv2d(in_channels, out_channels, (1, kernel_size), padding=padding)
         self.conv2 = nn.Conv2d(in_channels, out_channels, (1, kernel_size), padding=padding)
@@ -215,6 +274,8 @@ class TimeBlock(nn.Module):
 
 class BatchNorm(nn.Module):
     def __init__(self, num_nodes):
+        """BatchNorm2D over batch and node dimension.
+         Needs additional reshaping to fit the shape of the data"""
         super(BatchNorm, self).__init__()
         self.norm = nn.BatchNorm2d(num_nodes)
 
@@ -231,7 +292,6 @@ class STGCNBlock(nn.Module):
         super(STGCNBlock, self).__init__()
         self.temporal1 = TimeBlock(in_channels=in_channels, out_channels=out_channels)
         self.spatial1 = GlobalSLC(out_channels, spatial_channels, num_nodes, act_func=F.relu)
-        # self.spatial1 = GC(adj, out_channels, spatial_channels)
         self.temporal2 = TimeBlock(in_channels=spatial_channels, out_channels=out_channels)
         self.batch_norm = BatchNorm(num_nodes)
 
@@ -257,9 +317,9 @@ class Bottleneck(nn.Module):
 
 
 class P3DBlock(nn.Module):
-    def __init__(self, in_channels, spatial_channels, out_channels, num_nodes):
+    def __init__(self, adj, args, in_channels, spatial_channels, out_channels, num_nodes):
         super(P3DBlock, self).__init__()
-        self.spatial = GlobalSLC(spatial_channels, spatial_channels, num_nodes, act_func=F.relu)
+        self.spatial = GlobalSLC(adj, args, spatial_channels, spatial_channels, num_nodes, act_func=F.relu)
         self.temporal = TimeBlock(in_channels=spatial_channels, out_channels=spatial_channels)
         self.down_sample = Bottleneck(in_channels=in_channels, out_channels=spatial_channels)
         self.up_sample = Bottleneck(in_channels=spatial_channels, out_channels=out_channels)
@@ -268,8 +328,8 @@ class P3DBlock(nn.Module):
 
 
 class P3DABlock(P3DBlock):
-    def __init__(self, in_channels, spatial_channels, out_channels, num_nodes):
-        P3DBlock.__init__(self, in_channels, spatial_channels, out_channels, num_nodes)
+    def __init__(self, adj, args, in_channels, spatial_channels, out_channels, num_nodes):
+        P3DBlock.__init__(self, adj, args, in_channels, spatial_channels, out_channels, num_nodes)
 
     def forward(self, x):
         out = F.relu(self.down_sample(x))
@@ -283,8 +343,8 @@ class P3DABlock(P3DBlock):
 
 
 class P3DBBlock(P3DBlock):
-    def __init__(self, in_channels, spatial_channels, out_channels, num_nodes):
-        P3DBlock.__init__(self, in_channels, spatial_channels, out_channels, num_nodes)
+    def __init__(self, adj, args, in_channels, spatial_channels, out_channels, num_nodes):
+        P3DBlock.__init__(self, adj, args, in_channels, spatial_channels, out_channels, num_nodes)
 
     def forward(self, x):
         out = F.relu(self.down_sample(x))
@@ -299,8 +359,8 @@ class P3DBBlock(P3DBlock):
 
 
 class P3DCBlock(P3DBlock):
-    def __init__(self, in_channels, spatial_channels, out_channels, num_nodes):
-        P3DBlock.__init__(self, in_channels, spatial_channels, out_channels, num_nodes)
+    def __init__(self, adj, args, in_channels, spatial_channels, out_channels, num_nodes):
+        P3DBlock.__init__(self, adj, args, in_channels, spatial_channels, out_channels, num_nodes)
 
     def forward(self, x):
         out = F.relu(self.down_sample(x))
