@@ -87,12 +87,13 @@ class SLGCN(nn.Module):
         self.l_layer_list = nn.ModuleList()
         for idx, layer_multiplier in enumerate(nhid_multipliers):
             out_dim = nhid * layer_multiplier
-            self.g_layer_list.insert(idx, GlobalSLC(num_features, out_dim, num_nodes, act_func=F.leaky_relu).to(device))
-            self.l_layer_list.insert(idx, LocalSLC(adj, num_features, out_dim, num_nodes, k, act_func=F.leaky_relu).to(
-                device))
+            self.g_layer_list.insert(
+                idx, GlobalSLC(self.adj, args, num_features, out_dim, num_nodes, act_func=F.leaky_relu).to(device))
+            self.l_layer_list.insert(
+                idx, LocalSLC(self.adj, args, num_features, out_dim, num_nodes, k, act_func=F.leaky_relu).to(device))
             num_features = out_dim
-        self.g_last = GlobalSLC(num_features, nclass, num_nodes).to(device)
-        self.l_last = LocalSLC(adj, num_features, nclass, num_nodes, k).to(device)
+        self.g_last = GlobalSLC(self.adj, args, num_features, nclass, num_nodes).to(device)
+        self.l_last = LocalSLC(self.adj, args, num_features, nclass, num_nodes, k).to(device)
 
     def forward(self, x):
         for g_layer, l_layer in zip(self.g_layer_list, self.l_layer_list):

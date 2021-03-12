@@ -42,11 +42,18 @@ def parse_arguments():
                         type=str,
                         default=VAL_FILE,
                         help="File containing the validation data")
-    parser.add_argument(
-        '--toy_data',
-        action='store_true',
-        help="Uses the `--train_file` data with all nodes but only 2.5%"
-        "timestamps. Use it for debugging purposes")
+    parser.add_argument('--toy_data',
+                        action='store_true',
+                        help="Uses the `--train_file` data with all nodes but only 2.5%"
+                        "timestamps. Use it for debugging purposes")
+    parser.add_argument('--cs',
+                        type=int,
+                        default=6,
+                        help="Chebyshev polynomial order for the static modelling expression")
+    parser.add_argument('--cd',
+                        type=int,
+                        default=6,
+                        help="Chebyshev polynomial order for the dynamic modelling expression")
     parser.add_argument('--lr',
                         type=float,
                         default=LEARNING_RATE,

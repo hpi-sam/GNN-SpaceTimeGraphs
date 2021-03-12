@@ -72,19 +72,19 @@ class SLConv(nn.Module):
 
 
 class SGC(nn.Module):
-    def __init__(self, adj, args, c_in, c_out, num_nodes, cs=6, act_func=None):
+    def __init__(self, adj, args, c_in, c_out, num_nodes, act_func=None):
         super(SGC, self).__init__()
         self.c_in = c_in
         self.c_out = c_out
         self.num_nodes = num_nodes
-        self.cs = cs
+        self.cs = args.cs
 
         # convolution parameters
         if args.learnable_l:
             self.ws = Parameter(get_laplacian(adj))
         else:
             self.ws = get_laplacian(adj)
-        self.ts = Parameter(torch.rand((cs, c_in, c_out)))
+        self.ts = Parameter(torch.rand((self.cs, c_in, c_out)))
         self.param_list = [self.ws, self.ts]
 
         self.t0 = torch.eye(self.num_nodes, self.num_nodes, device=DEVICE)
@@ -120,17 +120,17 @@ class SGC(nn.Module):
 
 
 class GlobalSLC(nn.Module):
-    def __init__(self, adj, args, c_in, c_out, num_nodes, cs=6, cd=6, act_func=None):
+    def __init__(self, adj, args, c_in, c_out, num_nodes, act_func=None):
         super(GlobalSLC, self).__init__()
         self.c_in = c_in
         self.c_out = c_out
         self.num_nodes = num_nodes
-        self.cs = cs
-        self.cd = cd
+        self.cs = args.cs
+        self.cd = args.cd
 
         # convolution parameters
         self.wp = Parameter(torch.rand(c_in, c_in))
-        self.td = Parameter(torch.rand((cd, c_in, c_out)))
+        self.td = Parameter(torch.rand((self.cd, c_in, c_out)))
         self.param_list = [self.wp, self.td]
 
         self.t0 = torch.eye(self.num_nodes, self.num_nodes, device=DEVICE)
@@ -138,7 +138,7 @@ class GlobalSLC(nn.Module):
         self.reset_parameters()
 
         # spectral graph convolution with static graph structure
-        self.sgc = SGC(adj, args, c_in, c_out, num_nodes, cs, act_func=act_func)
+        self.sgc = SGC(adj, args, c_in, c_out, num_nodes, act_func=act_func)
 
     def reset_parameters(self):
         for parameter in self.param_list:
@@ -182,7 +182,7 @@ class GlobalSLC(nn.Module):
 
 
 class LocalSLC(nn.Module):
-    def __init__(self, adj, c_in, c_out, num_nodes, k, g=None, act_func=None):
+    def __init__(self, adj, args, c_in, c_out, num_nodes, k, act_func=None):
         super(LocalSLC, self).__init__()
         self.adj = adj
         self.c_in = c_in
