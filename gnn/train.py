@@ -7,23 +7,27 @@ from tqdm import tqdm
 
 from gnn.argparser import parse_arguments
 from gnn.dataset import TrafficDataset
-from gnn.models import GCN, GCRNN, SLGCN, STGCN, P3D
-from gnn.utils import load_adjacency_matrix, save_model_to_path, normalize, get_device
+from gnn.models import P3D
+from gnn.backlog.models import GCRNN, SLGCN, STGCN
+from gnn.utils import load_adjacency_matrix, save_model_to_path, get_device
+
+parser = parse_arguments()
+args = parser.parse_args()
+DEVICE = get_device(args.gpu)
 
 
 def run_epoch(model, optimizer, dataloader, training=True):
     mu, std = dataloader.dataset.mu, dataloader.dataset.std
-    device = model.device
-    mu = torch.tensor(mu, device=device)
-    std = torch.tensor(std, device=device)
+    mu = torch.tensor(mu, device=DEVICE)
+    std = torch.tensor(std, device=DEVICE)
     bar = tqdm(dataloader)
     losses = []
-    #print("epoch: {}".format(epoch + 1))
+    # print("epoch: {}".format(epoch + 1))
     for sample_batched in bar:
         model.train()
         optimizer.zero_grad()
-        x = sample_batched['features'].to(device).type(torch.float32)
-        y = sample_batched['labels'].to(device).type(torch.float32)
+        x = sample_batched['features'].to(DEVICE).type(torch.float32)
+        y = sample_batched['labels'].to(DEVICE).type(torch.float32)
         output = model(x)
         output_denormalized = output * std + mu
         y_denormalized = y * std + mu
@@ -42,13 +46,7 @@ def run_epoch(model, optimizer, dataloader, training=True):
 
 
 if __name__ == "__main__":
-    parser = parse_arguments()
-    args = parser.parse_args()
-
-    DEVICE = get_device(args.gpu)
-
     print(DEVICE)
-
     # Dataset
     dataset_train = TrafficDataset(args, split='train')
     dataset_val = TrafficDataset(args, split='val')
@@ -61,17 +59,8 @@ if __name__ == "__main__":
     adj = load_adjacency_matrix(args, DEVICE)
 
     # Model and optimizer
-    # TODO: model.to(device) instead of passing device as argument
-    if args.model == 'SLGCN':
-        model = SLGCN(adj, args, device=DEVICE)
-    elif args.model == 'RGCNN':
-        model = GCRNN(adj, args, device=DEVICE)
-    elif args.model == 'STGCN':
-        model = STGCN(adj, args, device=DEVICE)
-    elif args.model == 'P3D':
-        model = P3D(adj, args, device=DEVICE)
-    else:
-        model = GCN(adj, args, device=DEVICE)
+    model_list = {'SLGCN': SLGCN, 'RGCNN': GCRNN, 'STGCN': STGCN, 'P3D': P3D}
+    model = model_list[args.model](adj, args).to(DEVICE)
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
 

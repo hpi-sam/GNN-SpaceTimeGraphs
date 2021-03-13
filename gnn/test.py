@@ -12,6 +12,7 @@ from tqdm import tqdm
 
 MODEL_SAVE_PATH = "./saved_models/"
 
+
 def run_epoch(model, optimizer, dataloader, training=True):
     bar = tqdm(dataloader)
     losses = []
@@ -25,6 +26,7 @@ def run_epoch(model, optimizer, dataloader, training=True):
         losses.append(loss.item())
         bar.set_description('loss: {:.4f}'.format(loss.item()))
     return np.mean(losses)
+
 
 if __name__=='__main__':
     parser = parse_arguments()

@@ -13,6 +13,7 @@ import re
 logging.basicConfig(level=logging.INFO, format='# %(message)s')
 logger = logging.getLogger(__name__)
 
+
 class ObjectiveCreator:
     def __init__(self, args):
         self.args = args
@@ -37,12 +38,14 @@ class ObjectiveCreator:
                       for (key, val) in inspect.getmembers(args) if self.ht_var.match(key)}
         return tune_param
 
-
     def objective(self, trial):
-        {setattr(self.args, param, value) for (param, value) in self.get_tunable_parameters(trial, self.args).items()}
+        for (param, value) in self.get_tunable_parameters(trial, self.args).items():
+            setattr(self.args, param, value)
+
         model = getattr(models, args.model)(self.adj, self.args, self.device)
         optimizer = optim.Adam(model.parameters(), lr=self.args.lr)
         # Training
+        val_loss = 0
         for epoch in range(5):
 
             logger.info(f"epoch: {epoch}")
@@ -65,7 +68,7 @@ if __name__ == '__main__':
     objective = ObjectiveCreator(args).objective
 
     study = optuna.create_study(direction="minimize",
-                                pruner=optuna.pruners.MedianPruner(
-                                    n_startup_trials=1, n_warmup_steps=2, interval_steps=1
-                                ))
+                                pruner=optuna.pruners.MedianPruner(n_startup_trials=1,
+                                                                   n_warmup_steps=2,
+                                                                   interval_steps=1))
     study.optimize(objective, n_trials=5)

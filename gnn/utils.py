@@ -1,5 +1,4 @@
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import (absolute_import, division, print_function, unicode_literals)
 
 import argparse
 import os
@@ -10,23 +9,11 @@ import numpy as np
 import pandas as pd
 import scipy.sparse as sp
 import torch
-from datetime import datetime
 
 
-def generate_graph_seq2seq_io_data(df,
-                                   x_offsets,
-                                   y_offsets,
-                                   add_time_in_day=True,
-                                   add_day_in_week=False,
-                                   scaler=None):
+def generate_graph_seq2seq_io_data(df, x_offsets, y_offsets, add_time_in_day=True, add_day_in_week=False):
     """Generate samples from.
 
-    :param df:
-    :param x_offsets:
-    :param y_offsets:
-    :param add_time_in_day:
-    :param add_day_in_week:
-    :param scaler:
     :return:
     # x: (epoch_size, input_length, num_nodes, input_dim)
     # y: (epoch_size, output_length, num_nodes, output_dim)
@@ -38,9 +25,7 @@ def generate_graph_seq2seq_io_data(df,
 
     data_list = [data]
     if add_time_in_day:
-        time_ind = (df.index.values -
-                    df.index.values.astype("datetime64[D]")) / np.timedelta64(
-                        1, "D")
+        time_ind = (df.index.values - df.index.values.astype("datetime64[D]")) / np.timedelta64(1, "D")
         time_in_day = np.tile(time_ind, [1, num_nodes, 1]).transpose((2, 1, 0))
         data_list.append(time_in_day)
     if add_day_in_week:
@@ -72,9 +57,7 @@ def generate_train_val_test_inst_to_inst(args):
     data, mean, std = normalize_data(data)
     data_list = [data]
     if args.add_time_in_day:
-        time_ind = (df.index.values -
-                    df.index.values.astype("datetime64[D]")) / np.timedelta64(
-                        1, "D")
+        time_ind = (df.index.values - df.index.values.astype("datetime64[D]")) / np.timedelta64(1, "D")
         time_in_day = np.tile(time_ind, [1, num_nodes, 1]).transpose((2, 1, 0))
         data_list.append(time_in_day)
 
@@ -104,25 +87,20 @@ def generate_train_val_test_inst_to_inst(args):
     # train
     x_train_iti, y_train_iti = x[:num_train], y[:num_train]
     # val
-    x_val_iti, y_val_iti = (
-        x[num_train:num_train + num_val],
-        y[num_train:num_train + num_val],
-    )
+    x_val_iti, y_val_iti = (x[num_train:num_train + num_val], y[num_train:num_train + num_val])
     # test
     x_test_iti, y_test_iti = x[-num_test:], y[-num_test:]
 
     for cat in ["train_iti", "val_iti", "test_iti"]:
         _x, _y = locals()["x_" + cat], locals()["y_" + cat]
         print(cat, "x: ", _x.shape, "y:", _y.shape)
-        np.savez_compressed(
-            os.path.join(args.output_dir, "%s.npz" % cat),
-            x=_x,
-            y=_y,
-            mu=mean,
-            std=std,
-            x_offsets=0,
-            y_offsets=1,
-        )
+        np.savez_compressed(os.path.join(args.output_dir, "%s.npz" % cat),
+                            x=_x,
+                            y=_y,
+                            mu=mean,
+                            std=std,
+                            x_offsets=0,
+                            y_offsets=1)
 
 
 def normalize_data(data):
@@ -140,18 +118,16 @@ def generate_train_val_test(args):
     # 0 is the latest observed sample.
     x_offsets = np.sort(
         # np.concatenate(([-week_size + 1, -day_size + 1], np.arange(-11, 1, 1)))
-        np.concatenate((np.arange(-11, 1, 1), )))
+        np.concatenate((np.arange(-11, 1, 1),)))
     # Predict the next one hour
     y_offsets = np.sort(np.arange(1, 13, 1))
     # x: (num_samples, input_length, num_nodes, input_dim)
     # y: (num_samples, output_length, num_nodes, output_dim)
-    x, y, mean, std = generate_graph_seq2seq_io_data(
-        df,
-        x_offsets=x_offsets,
-        y_offsets=y_offsets,
-        add_time_in_day=True,
-        add_day_in_week=False,
-    )
+    x, y, mean, std = generate_graph_seq2seq_io_data(df,
+                                                     x_offsets=x_offsets,
+                                                     y_offsets=y_offsets,
+                                                     add_time_in_day=True,
+                                                     add_day_in_week=False)
 
     print("x shape: ", x.shape, ", y shape: ", y.shape)
     # Write the data into npz file.
@@ -165,25 +141,20 @@ def generate_train_val_test(args):
     # train
     x_train_sts, y_train_sts = x[:num_train], y[:num_train]
     # val
-    x_val_sts, y_val_sts = (
-        x[num_train:num_train + num_val],
-        y[num_train:num_train + num_val],
-    )
+    x_val_sts, y_val_sts = (x[num_train:num_train + num_val], y[num_train:num_train + num_val])
     # test
     x_test_sts, y_test_sts = x[-num_test:], y[-num_test:]
 
     for cat in ["train_sts", "val_sts", "test_sts"]:
         _x, _y = locals()["x_" + cat], locals()["y_" + cat]
         print(cat, "x: ", _x.shape, "y:", _y.shape)
-        np.savez_compressed(
-            os.path.join(args.output_dir, "%s.npz" % cat),
-            x=_x,
-            y=_y,
-            mu=mean,
-            std=std,
-            x_offsets=x_offsets.reshape(list(x_offsets.shape) + [1]),
-            y_offsets=y_offsets.reshape(list(y_offsets.shape) + [1]),
-        )
+        np.savez_compressed(os.path.join(args.output_dir, "%s.npz" % cat),
+                            x=_x,
+                            y=_y,
+                            mu=mean,
+                            std=std,
+                            x_offsets=x_offsets.reshape(list(x_offsets.shape) + [1]),
+                            y_offsets=y_offsets.reshape(list(y_offsets.shape) + [1]))
 
 
 def normalize(mx):
@@ -206,7 +177,7 @@ def get_laplacian(adj):
 
 
 def generate_knn_ids(dist, k):
-    return torch.argsort(dist, axis=-1)[:, -k - 1:-1]
+    return torch.argsort(dist, dim=-1)[:, -k - 1:-1]
 
 
 def load_data(filename):
@@ -215,12 +186,12 @@ def load_data(filename):
     return features, labels, mu, std
 
 
-def load_adjacency_matrix(args, DEVICE):
+def load_adjacency_matrix(args, device):
     place = args.pickled_files
     place_path = path.Path("./data") / place
     with open(place_path, "rb") as f:
         _, _, adj = pickle.load(f, encoding='latin-1')
-    adj = torch.tensor(normalize(adj), device=DEVICE)
+    adj = torch.tensor(normalize(adj), device=device)
     return adj
 
 
@@ -230,8 +201,7 @@ def save_model_to_path(args, model, model_save_path="./saved_models/"):
     else:
         filepath = model_save_path + 'model_001' + '.pt'
     if path.Path(filepath).is_file():
-        filepath = filepath.replace(filepath[-6:-3],
-                                    '{0:03}'.format(int(filepath[-6:-3]) + 1))
+        filepath = filepath.replace(filepath[-6:-3], '{0:03}'.format(int(filepath[-6:-3]) + 1))
 
     torch.save(model.state_dict(), filepath)
 
@@ -262,17 +232,13 @@ if __name__ == "__main__":
                         type=int,
                         default=1,
                         help="Output directory.")
-    parser.add_argument(
-        "--sts",
-        type=bool,
-        default=False,
-        help="True to generate Seq_to_seq data and false to create Inst_to_inst"
-    )
-    parser.add_argument(
-        "--traffic_df_filename",
-        type=str,
-        default="data/metr-la.h5",
-        help="Raw traffic readings.",
-    )
+    parser.add_argument("--sts",
+                        type=bool,
+                        default=False,
+                        help="True to generate Seq_to_seq data and false to create Inst_to_inst")
+    parser.add_argument("--traffic_df_filename",
+                        type=str,
+                        default="data/metr-la.h5",
+                        help="Raw traffic readings.")
     args = parser.parse_args()
     main(args)

@@ -7,7 +7,7 @@ WEIGHT_DECAY = 0.95
 EPOCHS = 100
 
 # DEFAULT VALUES FOR FILES AND FOLDERS
-CONFIG_FILEPATH = "../configs/config.yml"
+CONFIG_FILEPATH = "../configs/gcn.yml"
 TRAIN_FILE = "./data/metr_la/train.npz"
 TEST_FILE = "./data/metr_la/test.npz"
 VAL_FILE = "./data/metr_la/val.npz"
@@ -28,8 +28,8 @@ def parse_arguments():
                         '--my-config',
                         is_config_file=True,
                         help="Use config file to set arguments."
-                        "You can add new to override the"
-                        "the config file")
+                             "You can add new to override the"
+                             "the config file")
     parser.add_argument("--train_file",
                         type=str,
                         default=TRAIN_FILE,
@@ -66,12 +66,13 @@ def parse_arguments():
                         type=int,
                         default=BATCH_SIZE,
                         help="Batch size for training")
-    parser.add_argument('--save_model', action='store_true', help='')
-    parser.add_argument(
-        '--model_name',
-        type=str,
-        default='model_001',
-        help="Prefix for the saved model inside `~/saved_models`")
+    parser.add_argument('--save_model',
+                        action='store_true',
+                        help='')
+    parser.add_argument('--model_name',
+                        type=str,
+                        default='model_001',
+                        help="Prefix for the saved model inside `~/saved_models`")
     parser.add_argument('--n_epochs',
                         type=int,
                         default=EPOCHS,
@@ -80,10 +81,9 @@ def parse_arguments():
                         type=str,
                         default=ADJACENCY_PKL,
                         help="File containing the adjacency matrix")
-    parser.add_argument(
-        '--gpu',
-        action='store_true',
-        help="Try to enforce CUDA usage, but it will use CPU if it fails")
+    parser.add_argument('--gpu',
+                        action='store_true',
+                        help="Try to enforce CUDA usage, but it will use CPU if it fails")
     parser.add_argument('--model',
                         type=str,
                         default="SLGCN",
@@ -96,11 +96,10 @@ def parse_arguments():
                         type=int,
                         default=100,
                         help="number of hidden nodes")
-    parser.add_argument(
-        '--nclass',
-        type=int,
-        default=1,
-        help="number of classes to output. Put 1 for regression problem.")
+    parser.add_argument('--nclass',
+                        type=int,
+                        default=1,
+                        help="number of classes to output. Put 1 for regression problem.")
     parser.add_argument('--num_nodes',
                         type=int,
                         default=207,
@@ -113,11 +112,10 @@ def parse_arguments():
                         type=int,
                         nargs='+',
                         help="multiplication factors for each hidden layer")
-    parser.add_argument(
-        '--k',
-        type=int,
-        default=8,
-        help="number of Chebyhev polynomials for spectral convolution")
+    parser.add_argument('--k',
+                        type=int,
+                        default=8,
+                        help="number of Chebyhev polynomials for spectral convolution")
     parser.add_argument('--seq_len',
                         type=int,
                         default=12,
@@ -146,28 +144,9 @@ def parse_arguments():
                         action='store_true',
                         help="Whether to add the laplacian to the learnable parameters in graph convolutions")
 
-    parser.add_argument('--h_bottleneck_channels',
-                        type=int,
-                        nargs='+',
-                        )
-
-    parser.add_argument('--h_batch_size',
-                        type=int,
-                        nargs='+',
-                        )
-
-    parser.add_argument('--h_lr',
-                        type=float,
-                        nargs='+',
-                        )
+    # argument lists that are only used for hyper-tuning purposes
+    parser.add_argument('--h_bottleneck_channels', type=int, nargs='+')
+    parser.add_argument('--h_batch_size', type=int, nargs='+')
+    parser.add_argument('--h_lr', type=float, nargs='+')
 
     return parser
-
-
-if __name__ == "__main__":
-    parser = parse_arguments()
-    options = parser.parse_args()
-    print(options)
-    # print(parser.format_help())
-    print("----------")
-    print(parser.format_values())
