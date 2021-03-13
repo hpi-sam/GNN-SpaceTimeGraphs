@@ -57,8 +57,7 @@ if __name__ == "__main__":
     adj = load_adjacency_matrix(args, DEVICE)
 
     # Model and optimizer
-    model_list = {'SLGCN': SLGCN, 'RGCNN': GCRNN, 'STGCN': STGCN, 'P3D': P3D}
-    model = model_list[args.model](adj, args).to(DEVICE)
+    model = globals()[args.model](adj, args).to(DEVICE)
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
