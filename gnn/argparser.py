@@ -49,6 +49,9 @@ def parse_arguments():
                         action='store_true',
                         help="Uses the `--train_file` data with all nodes but only 2.5%"
                         "timestamps. Use it for debugging purposes")
+    parser.add_argument('--convolution_operator',
+                        type=str,
+                        default='SGC')
     parser.add_argument('--cs',
                         type=int,
                         default=6,

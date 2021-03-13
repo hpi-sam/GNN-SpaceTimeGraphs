@@ -31,6 +31,24 @@ class GC(nn.Module):
         self.th.data.uniform_(-std, std)
 
 
+def chebyshev_convolution(laplacian, signal, weights, k, t0, act_func):
+    # (num_nodes, num_nodes) x (batch_size, num_nodes, in_feat) x (c_in, c_out)
+    out = torch.matmul(torch.matmul(t0, signal), weights[0])  # (batch_size, num_nodes, c_out)
+
+    # computation of static graph structure convolution
+    out = out + torch.matmul(torch.matmul(laplacian, signal), weights[1])
+    tk_prev = laplacian
+    tk = 2. * torch.matmul(laplacian, laplacian) - t0
+    for k in range(2, k):
+        out = out + torch.matmul(torch.matmul(tk, signal), weights[k])
+        tk = 2. * torch.matmul(laplacian, tk) - tk_prev
+
+    if act_func:
+        out = act_func(out)
+
+    return out
+
+
 class SGC(nn.Module):
     def __init__(self, adj, args, c_in, c_out, num_nodes, act_func=None):
         super(SGC, self).__init__()
@@ -59,20 +77,77 @@ class SGC(nn.Module):
         :param x: graph signal at time [t-time_steps + 1,...,t] (batch_size, time_steps, num_nodes, c_in)
         :return: convolved signal at time [t-time_steps + 1,...,t] (batch_size, time_steps, num_nodes, c_out)
         """
-        # (num_nodes, num_nodes) x (batch_size, num_nodes, in_feat) x (c_in, c_out)
-        out = torch.matmul(torch.matmul(self.t0, x), self.ts[0])  # (batch_size, num_nodes, c_out)
-
-        # computation of static graph structure convolution
-        out = out + torch.matmul(torch.matmul(self.ws, x), self.ts[1])
-        tk_prev = self.ws
-        tk = 2. * torch.matmul(self.ws, self.ws) - self.t0
-        for k in range(2, self.cs):
-            out = out + torch.matmul(torch.matmul(tk, x), self.ts[k])
-            tk = 2. * torch.matmul(self.ws, tk) - tk_prev
-
-        if self.act_func:
-            out = self.act_func(out)
+        out = chebyshev_convolution(self.ws, x, self.ts, self.cs, self.t0, self.act_func)
         return out
+
+
+class ASGC(nn.Module):
+    def __init__(self, adj, args, c_in, c_out, num_nodes, act_func=None):
+        super(ASGC, self).__init__()
+        self.cs = args.cs
+        self.gru = nn.GRU(12, num_nodes)
+        self.ts = Parameter(torch.rand((self.cs, c_in, c_out)))
+        self.wq = Parameter(torch.rand(num_nodes, 1))
+        self.wk = Parameter(torch.rand(num_nodes, 1))
+        self.param_list = [self.ts, self.wq, self.wk]
+
+        self.register_buffer('t0', torch.eye(num_nodes, num_nodes))
+        self.act_func = act_func
+        self.dropout = nn.Dropout(p=0.5)
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        for parameter in self.param_list:
+            std = .1 / math.sqrt(parameter.size(1))
+            parameter.data.uniform_(-std, std)
+
+    def self_graph_att(self, x):
+        x = x.permute(0, 2, 1).contiguous()
+        bat, N, fea = x.size()
+        key = torch.matmul(x, self.wk)
+        query = torch.matmul(x, self.wq)
+        data = key.repeat(1, 1, N).view(bat, N * N, 1) + query.repeat(1, N, 1)
+        data = data.squeeze(2)
+        data = data.view(bat, N, -1)
+        data = F.leaky_relu(data)
+        att = F.softmax(data, dim=2)
+        att = self.dropout(att)
+        return att
+
+    def latent_correlation_layer(self, x):
+        x = x[:, :, :, 0]
+        x, _ = self.gru(x.permute(2, 0, 1).contiguous())
+        x = x.permute(1, 0, 2).contiguous()
+        att = self.self_graph_att(x)
+        att = torch.mean(att, dim=0)
+        degree = torch.sum(att, dim=1)
+        # laplacian is sym or not
+        att = 0.5 * (att + att.T)
+        degree_l = torch.diag(degree)
+        d = torch.diag(1 / (torch.sqrt(degree) + 1e-7))
+        laplacian = torch.matmul(d, torch.matmul(degree_l - att, d))
+        return laplacian
+
+    def forward(self, x):
+        """
+        Spectral Graph Convolution operator approximated with Chebyshev polynomials
+
+        :param x: graph signal at time [t-time_steps + 1,...,t] (batch_size, time_steps, num_nodes, c_in)
+        :return: convolved signal at time [t-time_steps + 1,...,t] (batch_size, time_steps, num_nodes, c_out)
+        """
+        laplacian = self.latent_correlation_layer(x)
+        out = chebyshev_convolution(laplacian, x, self.ts, self.cs, self.t0, self.act_func)
+        return out
+
+
+class ASGCP(nn.Module):
+    def __init__(self, adj, args, c_in, c_out, num_nodes, act_func=None):
+        super(ASGCP, self).__init__()
+        self.sgc = SGC(adj, args, c_in, c_out, num_nodes, act_func)
+        self.asgc = ASGC(adj, args, c_in, c_out, num_nodes, act_func)
+
+    def forward(self, x):
+        return self.sgc(x) + self.asgc(x)
 
 
 class GlobalSLC(nn.Module):
@@ -108,9 +183,6 @@ class GlobalSLC(nn.Module):
         """
         out_s = self.sgc(x)
 
-        # (num_nodes, num_nodes) x (batch_size, num_nodes, in_feat) x (c_in, c_out)
-        out = torch.matmul(torch.matmul(self.t0, x), self.td[0])  # (batch_size, num_nodes, c_out)
-
         # computation of dynamical graph structure convolution
         if len(x.shape) == 4:
             wd = torch.matmul(x, torch.matmul(self.wp, torch.transpose(x, 2, 3)))
@@ -120,17 +192,7 @@ class GlobalSLC(nn.Module):
         wd = wd + torch.min(wd)
         wd = wd / torch.max(wd) / self.num_nodes**2
 
-        out_d = out + torch.matmul(torch.matmul(wd, x), self.td[1])
-        tk_prev = wd
-        tk = 2. * torch.matmul(wd, wd) - self.t0
-        for k in range(2, self.cd):
-            out_d = out_d + torch.matmul(torch.matmul(tk, x), self.td[k])
-            tk = 2. * torch.matmul(wd, tk) - tk_prev
-
-        if self.act_func:
-            out_s = self.act_func(out_s)
-            out_d = self.act_func(out_d)
-
+        out_d = chebyshev_convolution(wd, x, self.td, self.cd, self.t0, self.act_func)
         output = out_s + out_d
         return output
 
@@ -190,7 +252,8 @@ class Bottleneck(nn.Module):
 class P3DBlock(nn.Module):
     def __init__(self, adj, args, in_channels, spatial_channels, out_channels, num_nodes):
         super(P3DBlock, self).__init__()
-        self.spatial = GlobalSLC(adj, args, spatial_channels, spatial_channels, num_nodes, act_func=F.relu)
+        gc = globals()[args.convolution_operator]
+        self.spatial = gc(adj, args, spatial_channels, spatial_channels, num_nodes, act_func=F.relu)
         self.temporal = TimeBlock(in_channels=spatial_channels, out_channels=spatial_channels)
         self.down_sample = Bottleneck(in_channels=in_channels, out_channels=spatial_channels)
         self.up_sample = Bottleneck(in_channels=spatial_channels, out_channels=out_channels)

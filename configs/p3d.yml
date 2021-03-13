@@ -20,3 +20,4 @@ gpu: False
 "spatial_channels": 16
 "dropout": 0.2
 "learnable_l": True
+"convolution_operator": "ASGC"
