@@ -11,6 +11,8 @@ from gnn.models import P3D
 from gnn.backlog.models import GCRNN, SLGCN, STGCN
 from gnn.utils import load_adjacency_matrix, save_model_to_path, get_device
 
+MODEL_SAVE_PATH = "./saved_models/"
+
 parser = parse_arguments()
 args = parser.parse_args()
 DEVICE = get_device(args.gpu)
@@ -22,9 +24,12 @@ def run_epoch(model, optimizer, dataloader, training=True):
     std = torch.tensor(std, device=DEVICE)
     bar = tqdm(dataloader)
     losses = []
+    if training:
+        model.train()
+    else:
+        model.eval()
     # print("epoch: {}".format(epoch + 1))
     for sample_batched in bar:
-        model.train()
         optimizer.zero_grad()
         x = sample_batched['features'].to(DEVICE).type(torch.float32)
         y = sample_batched['labels'].to(DEVICE).type(torch.float32)
@@ -47,13 +52,6 @@ def run_epoch(model, optimizer, dataloader, training=True):
 
 if __name__ == "__main__":
     print(DEVICE)
-    # Dataset
-    dataset_train = TrafficDataset(args, split='train')
-    dataset_val = TrafficDataset(args, split='val')
-
-    # use data loader
-    dataloader_train = DataLoader(dataset_train, batch_size=args.batch_size, shuffle=True, num_workers=1)
-    dataloader_val = DataLoader(dataset_val, batch_size=args.batch_size, shuffle=False, num_workers=1)
 
     # load adjacency matrix
     adj = load_adjacency_matrix(args, DEVICE)
@@ -64,17 +62,34 @@ if __name__ == "__main__":
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
-    # Training
-    hist_loss = []
-    for epoch in range(args.n_epochs):
-        ml_train = run_epoch(model, optimizer, dataloader_train)
-        print('Mean train-loss over batch: {:.4f}'.format(ml_train))
+    if args.mode == 'train':
+        dataset_train = TrafficDataset(args, split='train')
+        dataset_val = TrafficDataset(args, split='val')
+        dataloader_train = DataLoader(dataset_train, batch_size=args.batch_size, shuffle=True, num_workers=1)
+        dataloader_val = DataLoader(dataset_val, batch_size=args.batch_size, shuffle=False, num_workers=1)
 
-        ml_val = run_epoch(model, optimizer, dataloader_val, training=False)
-        print('Mean validation-loss over batch: {:.4f}'.format(ml_val))
-        hist_loss.append((ml_train, ml_val))
+        # Training
+        hist_loss = []
+        for epoch in range(args.n_epochs):
+            ml_train = run_epoch(model, optimizer, dataloader_train)
+            print('Mean train-loss over batch: {:.4f}'.format(ml_train))
 
-    # save the model
-    save_model_to_path(args, model)
+            ml_val = run_epoch(model, optimizer, dataloader_val, training=False)
+            print('Mean validation-loss over batch: {:.4f}'.format(ml_val))
+            hist_loss.append((ml_train, ml_val))
 
-    np.save(f"losses_on_{args.n_epochs}_epochs", hist_loss)
+        # save the model
+        save_model_to_path(args, model)
+
+        np.save(f"losses_on_{args.n_epochs}_epochs", hist_loss)
+
+    if args.mode == 'test':
+        dataset_test = TrafficDataset(args, split='test')
+        dataloader_test = DataLoader(dataset_test, batch_size=args.batch_size, shuffle=False, num_workers=1)
+
+        model.load_state_dict(torch.load(MODEL_SAVE_PATH + 'slgcn_global.pt'))
+        optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+
+        print('Iterate over the test-split...')
+        ml_test = run_epoch(model, optimizer, dataloader_test, training=False)
+        print('Mean loss over test dataset: {:.4f}'.format(ml_test))

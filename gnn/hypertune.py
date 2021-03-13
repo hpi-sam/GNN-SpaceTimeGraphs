@@ -4,7 +4,7 @@ from gnn.dataset import TrafficDataset
 from torch.utils.data import DataLoader
 from gnn import models
 import torch.optim as optim
-from gnn.train import run_epoch
+from gnn.run import run_epoch
 import optuna
 import logging
 import inspect

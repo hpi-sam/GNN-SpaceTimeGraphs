@@ -30,6 +30,9 @@ def parse_arguments():
                         help="Use config file to set arguments."
                              "You can add new to override the"
                              "the config file")
+    parser.add_argument('--mode',
+                        type=str,
+                        default="train")
     parser.add_argument("--train_file",
                         type=str,
                         default=TRAIN_FILE,
