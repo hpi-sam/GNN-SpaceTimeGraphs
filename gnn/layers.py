@@ -34,11 +34,7 @@ class GC(nn.Module):
 class SGC(nn.Module):
     def __init__(self, adj, args, c_in, c_out, num_nodes, act_func=None):
         super(SGC, self).__init__()
-        self.c_in = c_in
-        self.c_out = c_out
-        self.num_nodes = num_nodes
         self.cs = args.cs
-
         # convolution parameters
         if args.learnable_l:
             self.ws = Parameter(get_laplacian(adj))
@@ -47,7 +43,7 @@ class SGC(nn.Module):
         self.ts = Parameter(torch.rand((self.cs, c_in, c_out)))
         self.param_list = [self.ws, self.ts]
 
-        self.register_buffer('t0', torch.eye(self.num_nodes, self.num_nodes))
+        self.register_buffer('t0', torch.eye(num_nodes, num_nodes))
         self.act_func = act_func
         self.reset_parameters()
 
@@ -82,18 +78,16 @@ class SGC(nn.Module):
 class GlobalSLC(nn.Module):
     def __init__(self, adj, args, c_in, c_out, num_nodes, act_func=None):
         super(GlobalSLC, self).__init__()
-        self.c_in = c_in
-        self.c_out = c_out
-        self.num_nodes = num_nodes
         self.cs = args.cs
         self.cd = args.cd
+        self.num_nodes = num_nodes
 
         # convolution parameters
         self.wp = Parameter(torch.rand(c_in, c_in))
         self.td = Parameter(torch.rand((self.cd, c_in, c_out)))
         self.param_list = [self.wp, self.td]
 
-        self.register_buffer('t0', torch.eye(self.num_nodes, self.num_nodes))
+        self.register_buffer('t0', torch.eye(num_nodes, num_nodes))
         self.act_func = act_func
         self.reset_parameters()
 

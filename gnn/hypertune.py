@@ -42,7 +42,7 @@ class ObjectiveCreator:
         for (param, value) in self.get_tunable_parameters(trial, self.args).items():
             setattr(self.args, param, value)
 
-        model = getattr(models, args.model)(self.adj, self.args, self.device)
+        model = getattr(models, args.model)(self.adj, self.args).to(self.device)
         optimizer = optim.Adam(model.parameters(), lr=self.args.lr)
         # Training
         val_loss = 0
