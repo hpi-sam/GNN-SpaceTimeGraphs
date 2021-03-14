@@ -156,6 +156,7 @@ def parse_arguments():
 
     # argument lists that are only used for hyper-tuning purposes
     parser.add_argument('--h_bottleneck_channels', type=int, nargs='+')
+    parser.add_argument('--h_spatial_channels', type=float, nargs='+')
     parser.add_argument('--h_batch_size', type=int, nargs='+')
     parser.add_argument('--h_lr', type=float, nargs='+')
     parser.add_argument('--h_dropout', type=float, nargs='+')

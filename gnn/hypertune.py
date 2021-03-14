@@ -32,10 +32,26 @@ class ObjectiveCreator:
             raise TypeError("List has inconsistent types")
         return types.pop()
 
+    @staticmethod
+    def get_list_size(lst):
+        if len(lst) > 2:
+            return "categorical"
+        elif len(lst) == 2:
+            return "range"
+        else:
+            raise ValueError("list should be either a range (2 elements) or categorical (3+ elements)")
+
     def get_tunable_parameters(self, trial, args):
         type_to_suggestion_map = {int: trial.suggest_int, float: trial.suggest_float}
-        tune_param = {self.ht_var.sub("", key): type_to_suggestion_map[self.get_list_type(val)](key, *val)
-                      for (key, val) in inspect.getmembers(args) if self.ht_var.match(key)}
+        tune_param = {}
+        for key, val in inspect.getmembers(args):
+            if self.ht_var.match(key):
+                sugest_type = self.get_list_size(val)
+                if sugest_type == "categorical":
+                    tune_param[self.ht_var.sub("", key)] = trial.suggest_categorical(key, val)
+                if sugest_type == "range":
+                    tune_param[self.ht_var.sub("", key)] = type_to_suggestion_map[self.get_list_type(val)](key, *val)
+        tune_param["spatial_channels"] = int(tune_param["bottleneck_channels"] * tune_param["spatial_channels"])
         return tune_param
 
     def objective(self, trial):

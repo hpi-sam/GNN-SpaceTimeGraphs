@@ -8,7 +8,7 @@ batch_size: 16
 save_model: True
 model_name: model_001
 n_epochs: 10
-pickled_files:  "metr_la/adj_mx_la.pkl"
+pickled_files: "metr_la/adj_mx_la.pkl"
 model: "P3D"
 gpu: False
 
