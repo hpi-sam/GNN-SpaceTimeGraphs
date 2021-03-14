@@ -1,7 +1,7 @@
 import torch
 from torch.utils.data import Dataset
 
-from gnn.utils import load_data
+from utils import load_data
 
 
 class TrafficDataset(Dataset):

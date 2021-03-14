@@ -2,7 +2,7 @@ import math
 import torch
 import torch.nn as nn
 
-from gnn.utils import get_laplacian
+from utils import get_laplacian
 from torch.nn.parameter import Parameter
 from torch.functional import F
 

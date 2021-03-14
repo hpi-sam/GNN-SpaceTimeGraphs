@@ -11,7 +11,7 @@ dependencies:
   - networkx
   - yapf
   - pip
-  - configargpars
+  - configargparse
   - optuna
   - pip:
       - torch-geometric

@@ -2,7 +2,7 @@ import math
 import torch
 import torch.nn as nn
 
-from gnn.utils import generate_knn_ids
+from utils import generate_knn_ids
 from gnn.layers import TimeBlock, GlobalSLC, BatchNorm
 from torch.nn.parameter import Parameter
 from torch.functional import F

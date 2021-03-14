@@ -9,8 +9,8 @@ from tqdm import tqdm
 from gnn.argparser import parse_arguments
 from gnn.dataset import TrafficDataset
 from gnn.models import P3D
-from gnn.backlog.models import GCN, GCRNN, SLGCN, STGCN
-from gnn.utils import load_adjacency_matrix, save_model_to_path, get_device
+from gnn.backlog.models import GCN, STGCN, SLGCN, GCRNN
+from utils import load_adjacency_matrix, save_model_to_path, get_device
 
 logger = logging.getLogger(__name__)
 MODEL_SAVE_PATH = "./saved_models/"

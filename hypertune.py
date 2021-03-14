@@ -1,14 +1,15 @@
 from gnn.argparser import parse_arguments
-from gnn.utils import load_adjacency_matrix, get_device
+from utils import load_adjacency_matrix, get_device
 from gnn.dataset import TrafficDataset
 from torch.utils.data import DataLoader
 from gnn import models
 import torch.optim as optim
-from gnn.run import run_epoch
+from run import run_epoch
 import optuna
 import logging
 import inspect
 import re
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -90,4 +91,7 @@ if __name__ == '__main__':
                                 pruner=optuna.pruners.SuccessiveHalvingPruner(min_resource='auto',
                                                                               reduction_factor=4,
                                                                               min_early_stopping_rate=0))
-    study.optimize(objective, n_trials=100)
+    study.optimize(objective, n_trials=1)
+    df_study = study.trials_dataframe()
+    tstamp = datetime.now().strftime("%Y-%m-%dT%H:%M")
+    df_study.to_csv(f'./studies/{args.model}-{args.convolution_operator}-{tstamp}.csv')
