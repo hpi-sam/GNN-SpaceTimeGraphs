@@ -84,7 +84,8 @@ if __name__ == '__main__':
     objective = ObjectiveCreator(args).objective
 
     study = optuna.create_study(direction="minimize",
-                                pruner=optuna.pruners.MedianPruner(n_startup_trials=1,
-                                                                   n_warmup_steps=2,
-                                                                   interval_steps=1))
-    study.optimize(objective, n_trials=5)
+                                sampler=optuna.samplers.TPESampler(n_startup_trials=3),
+                                pruner=optuna.pruners.SuccessiveHalvingPruner(min_resource='auto',
+                                                                              reduction_factor=4,
+                                                                              min_early_stopping_rate=0))
+    study.optimize(objective, n_trials=20)
