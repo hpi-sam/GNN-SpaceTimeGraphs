@@ -1,0 +1,26 @@
+train_file: "./data/metr_la/train_sts.npz"
+test_file: "./data/metr_la/test_sts.npz"
+val_file: "./data/metr_la/val_sts.npz"
+forecast_horizon: 1 # A/B testing [1, 3, 5,...]
+toy_data: False
+save_model: True
+model_name: model_001
+n_epochs: 10
+pickled_files: "metr_la/adj_mx_la.pkl"
+model: "P3D"
+gpu: False
+
+#tunable
+h_bottleneck_channels: [16, 32, 64, 128]
+h_spatial_channels: [.5, .75, 1]
+h_batch_size: [2, 64]
+h_lr: [1e-3, 1e-2]
+dropout: 0.2
+
+# model parameters
+"nclass": 1
+"num_nodes": 207
+"num_features": 2
+"learnable_l": True
+"convolution_operator": "ASGC"
+
