@@ -164,4 +164,6 @@ def parse_arguments():
     parser.add_argument('--h_dropout', type=float, nargs='+')
     parser.add_argument('--h_dropout_att', type=float, nargs='+')
 
+    parser.add_argument('--n_trials', type=float, default=100)
+
     return parser

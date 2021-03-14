@@ -91,7 +91,8 @@ if __name__ == '__main__':
                                 pruner=optuna.pruners.SuccessiveHalvingPruner(min_resource='auto',
                                                                               reduction_factor=4,
                                                                               min_early_stopping_rate=0))
-    study.optimize(objective, n_trials=1)
+    study.optimize(objective, n_trials=args.n_trials)
     df_study = study.trials_dataframe()
     tstamp = datetime.now().strftime("%Y-%m-%dT%H:%M")
-    df_study.to_csv(f'./studies/{args.model}-{args.convolution_operator}-{tstamp}.csv')
+    mode = 'free' if args.learnable_l else 'base'
+    df_study.to_csv(f'./studies/{args.model}-{args.convolution_operator}-{tstamp}-{mode}.csv')
