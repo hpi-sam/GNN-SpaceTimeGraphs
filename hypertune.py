@@ -18,10 +18,8 @@ class ObjectiveCreator:
     def __init__(self, args):
         self.args = args
         self.device = get_device(args.gpu)
-        dataset_train = TrafficDataset(args, split='train')
-        dataset_val = TrafficDataset(args, split='val')
-        self.dataloader_train = DataLoader(dataset_train, batch_size=args.batch_size, shuffle=True, num_workers=1)
-        self.dataloader_val = DataLoader(dataset_val, batch_size=args.batch_size, shuffle=False, num_workers=1)
+        self.dataset_train = TrafficDataset(args, split='train')
+        self.dataset_val = TrafficDataset(args, split='val')
         self.adj = load_adjacency_matrix(args, self.device)
         self.ht_var = re.compile("^h_")
 
@@ -66,10 +64,12 @@ class ObjectiveCreator:
         else:
             logging.basicConfig(level=logging.INFO, format='# %(message)s')
         val_loss_list = []
-        logger.info(f"model: {:trial.params}")
+        logger.info(f"model: {trial.params}")
+        dataloader_train = DataLoader(self.dataset_train, batch_size=self.args.batch_size, shuffle=True, num_workers=1)
+        dataloader_val = DataLoader(self.dataset_val, batch_size=self.args.batch_size, shuffle=False, num_workers=1)
         for epoch in range(self.args.n_epochs):
-            train_loss = run_epoch(model, optimizer, self.dataloader_train)
-            val_loss = run_epoch(model, optimizer, self.dataloader_val, training=False)
+            train_loss = run_epoch(model, optimizer, dataloader_train)
+            val_loss = run_epoch(model, optimizer, dataloader_val, training=False)
             logger.info(f"epoch: {epoch}, train:{train_loss}, val:{val_loss}")
             trial.report(val_loss, epoch)
             if trial.should_prune():
