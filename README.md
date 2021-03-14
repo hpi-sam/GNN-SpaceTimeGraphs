@@ -1,6 +1,6 @@
 # GNN-SpaceTimeGraphs
 
-## Project setup
+## Setup
 You can find a quick installation guide in the [project wiki](https://github.com/hpi-sam/GNN-SpaceTimeGraphs/wiki), you will need to download the `pems-bay` and `metr-la` datasets, and run a processing script that can be found within `gnn/utils.py` 
 
 ## Abstract
