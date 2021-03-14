@@ -11,9 +11,7 @@ model: "STGCN"
 gpu: False
 
 #tunable
-lr:
-  - 1e-5
-  - 1e-1
+h_lr: [1e-5, 1e-1]
 
 # model parameters
 "nclass": 1
