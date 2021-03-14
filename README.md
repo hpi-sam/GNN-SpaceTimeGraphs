@@ -1,7 +1,44 @@
 # GNN-SpaceTimeGraphs
 
 ## Setup
-You can find a quick installation guide in the [project wiki](https://github.com/hpi-sam/GNN-SpaceTimeGraphs/wiki), you will need to download the `pems-bay` and `metr-la` datasets, and run a processing script that can be found within `gnn/utils.py` 
+
+From your terminal, run the following commands sequentially
+
+```bash
+
+# Clone git repo && create a new env with required libraries
+git clone https://github.com/hpi-sam/GNN-SpaceTimeGraphs.git
+cd GNN-SpaceTimeGraphs
+conda env create -f environment.yml
+conda activate gnn-env
+
+# Download the metr-la and pems-bay data from 
+# https://drive.google.com/file/d/1wD-mHlqAb2mtHOe_68fZvDh1LpDegMMq/view?usp=sharing
+export fileid=1pAGRfzMx6K9WWsfDcD1NMbIif0T0saFC
+export filename=data/metr_la/metr-la.h5
+wget -O $filename 'https://drive.google.com/uc?export=download&id='$fileid
+
+export fileid=1wD-mHlqAb2mtHOe_68fZvDh1LpDegMMq
+export filename=data/pems_bay/pems-bay.h5
+wget -O $filename 'https://drive.google.com/uc?export=download&id='$fileid
+
+# Run utils script to process the data that is going to be used
+python utils.py --output_dir=data/metr_la \
+                    --traffic_df_filename=data/metr_la/metr-la.h5 --sts=True
+python utils.py --output_dir=data/metr_la \
+                    --traffic_df_filename=data/metr_la/metr-la.h5
+python utils.py --output_dir=data/metr_la \
+                    --traffic_df_filename=data/pems_bay/pems-bay.h5 --sts=True
+python utils.py --output_dir=data/metr_la \
+                    --traffic_df_filename=data/pems_bay/pems-bay.h5
+```
+
+If you find any problems with `wget [...]`, you can manually download the datasets from [this Google Drive link](https://drive.google.com/file/d/1wD-mHlqAb2mtHOe_68fZvDh1LpDegMMq/view?usp=sharing)
+
+To train a model, run the following command from the `GNN-SpaceTimeGraphs` folder 
+```bash
+python run.py -c configs/p3d.yml --toy_data
+```
 
 ## Abstract
 In Intelligent Transport Systems (ITS), traffic forecasting is a crucial tool to improve road security, planning and operation. Before using neural architectures, autoregressive models were employed for time-series forecasting which faced difficulties to model highly non-linear and spatially dependent traffic data.
