@@ -1,5 +1,8 @@
 # GNN-SpaceTimeGraphs
 
+## Project setup
+You can find a quick installation guide in the [project wiki](https://github.com/hpi-sam/GNN-SpaceTimeGraphs/wiki), you will need to download the `pems-bay` and `metr-la` datasets, and run a processing script that can be found within `gnn/utils.py` 
+
 ## Abstract
 In Intelligent Transport Systems (ITS), traffic forecasting is a crucial tool to improve road security, planning and operation. Before using neural architectures, autoregressive models were employed for time-series forecasting which faced difficulties to model highly non-linear and spatially dependent traffic data.
 Speed sensors in road networks are arranged in graph like structures, therefore, spatial and temporal dependencies are often modeled based on traffic graphs. Because relationships of sensors are modeled in space and time concurrently, the effectiveness of each mechanisms needs to be isolated when comparing neural network architectures. Contrary to a formulation where edges in a traffic graph are predefined through physical road connections or closeness in space, there is a trend towards refining the structure of traffic graphs during the learning process.
