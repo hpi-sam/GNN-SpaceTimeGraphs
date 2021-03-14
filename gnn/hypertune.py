@@ -65,6 +65,7 @@ class ObjectiveCreator:
             logging.basicConfig(filename=args.log_file, level=logging.INFO)
         else:
             logging.basicConfig(level=logging.INFO, format='# %(message)s')
+        val_loss_list = []
         for epoch in range(self.args.n_epochs):
             logger.info(f"epoch: {epoch}")
             train_loss = run_epoch(model, optimizer, self.dataloader_train)
@@ -74,7 +75,8 @@ class ObjectiveCreator:
             trial.report(val_loss, epoch)
             if trial.should_prune():
                 raise optuna.TrialPruned()
-        return val_loss
+            val_loss_list.append(val_loss)
+        return min(val_loss_list)
 
 
 if __name__ == '__main__':
