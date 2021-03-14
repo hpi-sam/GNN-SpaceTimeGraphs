@@ -9,7 +9,7 @@ From your terminal, run the following commands sequentially
 # Clone git repo && create a new env with required libraries
 git clone https://github.com/hpi-sam/GNN-SpaceTimeGraphs.git
 cd GNN-SpaceTimeGraphs
-conda env create -f environment.yml
+make env
 conda activate gnn-env
 
 # Download the metr-la and pems-bay data from 
