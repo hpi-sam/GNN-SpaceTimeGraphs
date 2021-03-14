@@ -146,6 +146,10 @@ def parse_arguments():
                         type=float,
                         default=0.2,
                         help="Amount of dropout to apply")
+    parser.add_argument('--dropout_att',
+                        type=float,
+                        default=0.5,
+                        help="Amount of dropout to apply in latent correlation layer")
     parser.add_argument('--learnable_l',
                         action='store_true',
                         help="Whether to add the laplacian to the learnable parameters in graph convolutions")
@@ -154,5 +158,7 @@ def parse_arguments():
     parser.add_argument('--h_bottleneck_channels', type=int, nargs='+')
     parser.add_argument('--h_batch_size', type=int, nargs='+')
     parser.add_argument('--h_lr', type=float, nargs='+')
+    parser.add_argument('--h_dropout', type=float, nargs='+')
+    parser.add_argument('--h_dropout_att', type=float, nargs='+')
 
     return parser

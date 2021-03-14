@@ -93,7 +93,7 @@ class ASGC(nn.Module):
 
         self.register_buffer('t0', torch.eye(num_nodes, num_nodes))
         self.act_func = act_func
-        self.dropout = nn.Dropout(p=0.5)
+        self.dropout = nn.Dropout(p=args.dropout_att)
         self.reset_parameters()
 
     def reset_parameters(self):
