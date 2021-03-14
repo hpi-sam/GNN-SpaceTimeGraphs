@@ -1,4 +1,5 @@
 import numpy as np
+import logging
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
@@ -8,9 +9,10 @@ from tqdm import tqdm
 from gnn.argparser import parse_arguments
 from gnn.dataset import TrafficDataset
 from gnn.models import P3D
-from gnn.backlog.models import GCRNN, SLGCN, STGCN
+from gnn.backlog.models import GCN, GCRNN, SLGCN, STGCN
 from gnn.utils import load_adjacency_matrix, save_model_to_path, get_device
 
+logger = logging.getLogger(__name__)
 MODEL_SAVE_PATH = "./saved_models/"
 
 parser = parse_arguments()
@@ -69,12 +71,18 @@ if __name__ == "__main__":
 
         # Training
         hist_loss = []
+        if args.log_file:
+            logging.basicConfig(filename=args.log_file, level=logging.INFO)
+        else:
+            logging.basicConfig(level=logging.INFO, format='# %(message)s')
+
         for epoch in range(args.n_epochs):
             ml_train = run_epoch(model, optimizer, dataloader_train)
-            print('Mean train-loss over batch: {:.4f}'.format(ml_train))
+            logger.info(f"epoch: {epoch}")
+            logger.info('Mean train-loss over batch: {:.4f}'.format(ml_train))
 
             ml_val = run_epoch(model, optimizer, dataloader_val, training=False)
-            print('Mean validation-loss over batch: {:.4f}'.format(ml_val))
+            logger.info('Mean validation-loss over batch: {:.4f}'.format(ml_val))
             hist_loss.append((ml_train, ml_val))
 
         # save the model
@@ -89,6 +97,6 @@ if __name__ == "__main__":
         model.load_state_dict(torch.load(MODEL_SAVE_PATH + 'slgcn_global.pt'))
         optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
-        print('Iterate over the test-split...')
+        logger.info('Iterate over the test-split...')
         ml_test = run_epoch(model, optimizer, dataloader_test, training=False)
-        print('Mean loss over test dataset: {:.4f}'.format(ml_test))
+        logger.info('Mean loss over test dataset: {:.4f}'.format(ml_test))

@@ -10,7 +10,6 @@ import logging
 import inspect
 import re
 
-logging.basicConfig(level=logging.INFO, format='# %(message)s')
 logger = logging.getLogger(__name__)
 
 
@@ -62,13 +61,14 @@ class ObjectiveCreator:
         optimizer = optim.Adam(model.parameters(), lr=self.args.lr)
         # Training
         val_loss = 0
+        if args.log_file:
+            logging.basicConfig(filename=args.log_file, level=logging.INFO)
+        else:
+            logging.basicConfig(level=logging.INFO, format='# %(message)s')
         for epoch in range(self.args.n_epochs):
-
             logger.info(f"epoch: {epoch}")
-            logger.info("train")
             train_loss = run_epoch(model, optimizer, self.dataloader_train)
             logger.info('Mean train-loss over batch: {:.4f}'.format(train_loss))
-            logger.info("val")
             val_loss = run_epoch(model, optimizer, self.dataloader_val, training=False)
             logger.info('Mean validation-loss over batch: {:.4f}'.format(val_loss))
             trial.report(val_loss, epoch)
@@ -88,4 +88,4 @@ if __name__ == '__main__':
                                 pruner=optuna.pruners.SuccessiveHalvingPruner(min_resource='auto',
                                                                               reduction_factor=4,
                                                                               min_early_stopping_rate=0))
-    study.optimize(objective, n_trials=20)
+    study.optimize(objective, n_trials=100)

@@ -8,9 +8,9 @@ EPOCHS = 100
 
 # DEFAULT VALUES FOR FILES AND FOLDERS
 CONFIG_FILEPATH = "../configs/gcn.yml"
-TRAIN_FILE = "./data/metr_la/train.npz"
-TEST_FILE = "./data/metr_la/test.npz"
-VAL_FILE = "./data/metr_la/val.npz"
+TRAIN_FILE = "./data/metr_la/train_sts.npz"
+TEST_FILE = "./data/metr_la/test_sts.npz"
+VAL_FILE = "./data/metr_la/val_sts.npz"
 MODEL_SAVE_PATH = "./saved_models/"
 ADJACENCY_PKL = "metr_la/adj_mx_la.pkl"
 
@@ -153,6 +153,8 @@ def parse_arguments():
     parser.add_argument('--learnable_l',
                         action='store_true',
                         help="Whether to add the laplacian to the learnable parameters in graph convolutions")
+    parser.add_argument('--log_file',
+                        type=str)
 
     # argument lists that are only used for hyper-tuning purposes
     parser.add_argument('--h_bottleneck_channels', type=int, nargs='+')
