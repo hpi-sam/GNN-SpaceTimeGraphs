@@ -12,6 +12,7 @@ dependencies:
   - yapf
   - pip
   - configargpars
+  - optuna
   - pip:
       - torch-geometric
       - pip-tools

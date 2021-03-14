@@ -45,7 +45,7 @@ class ObjectiveCreator:
         type_to_suggestion_map = {int: trial.suggest_int, float: trial.suggest_float}
         tune_param = {}
         for key, val in inspect.getmembers(args):
-            if self.ht_var.match(key):
+            if self.ht_var.match(key) and val:
                 sugest_type = self.get_list_size(val)
                 if sugest_type == "categorical":
                     tune_param[self.ht_var.sub("", key)] = trial.suggest_categorical(key, val)
@@ -62,7 +62,7 @@ class ObjectiveCreator:
         optimizer = optim.Adam(model.parameters(), lr=self.args.lr)
         # Training
         val_loss = 0
-        for epoch in range(5):
+        for epoch in range(self.args.n_epochs):
 
             logger.info(f"epoch: {epoch}")
             logger.info("train")

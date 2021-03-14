@@ -15,7 +15,7 @@ h_bottleneck_channels: [16, 32, 64, 128]
 h_spatial_channels: [.5, .75, 1]
 h_batch_size: [2, 64]
 h_lr: [1e-3, 1e-2]
-dropout: 0.2
+h_dropout: [0, .25, .75]
 
 # model parameters
 "nclass": 1
