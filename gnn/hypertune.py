@@ -61,7 +61,7 @@ class ObjectiveCreator:
         model = getattr(models, args.model)(self.adj, self.args).to(self.device)
         optimizer = optim.Adam(model.parameters(), lr=self.args.lr)
         # Training
-        val_loss = 0
+        val_loss_list = []
         for epoch in range(self.args.n_epochs):
 
             logger.info(f"epoch: {epoch}")
@@ -74,7 +74,8 @@ class ObjectiveCreator:
             trial.report(val_loss, epoch)
             if trial.should_prune():
                 raise optuna.TrialPruned()
-        return val_loss
+            val_loss_list.append(val_loss)
+        return min(val_loss)
 
 
 if __name__ == '__main__':
