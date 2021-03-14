@@ -61,18 +61,16 @@ class ObjectiveCreator:
         model = getattr(models, args.model)(self.adj, self.args).to(self.device)
         optimizer = optim.Adam(model.parameters(), lr=self.args.lr)
         # Training
-        val_loss = 0
         if args.log_file:
             logging.basicConfig(filename=args.log_file, level=logging.INFO)
         else:
             logging.basicConfig(level=logging.INFO, format='# %(message)s')
         val_loss_list = []
+        logger.info(f"model: {:trial.params}")
         for epoch in range(self.args.n_epochs):
-            logger.info(f"epoch: {epoch}")
             train_loss = run_epoch(model, optimizer, self.dataloader_train)
-            logger.info('Mean train-loss over batch: {:.4f}'.format(train_loss))
             val_loss = run_epoch(model, optimizer, self.dataloader_val, training=False)
-            logger.info('Mean validation-loss over batch: {:.4f}'.format(val_loss))
+            logger.info(f"epoch: {epoch}, train:{train_loss}, val:{val_loss}")
             trial.report(val_loss, epoch)
             if trial.should_prune():
                 raise optuna.TrialPruned()
