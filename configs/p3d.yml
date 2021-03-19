@@ -19,5 +19,5 @@ gpu: False
 "bottleneck_channels": 32
 "spatial_channels": 16
 "dropout": 0.2
-"learnable_l": True
+"learnable_l": False
 "convolution_operator": "ASGC"

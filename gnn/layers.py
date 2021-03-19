@@ -7,30 +7,6 @@ from torch.nn.parameter import Parameter
 from torch.functional import F
 
 
-class GC(nn.Module):
-    def __init__(self, adj, c_in, c_out):
-        """ Graph Convolution operator that sums over the neighbors
-
-        :param adj: Normalized adjacency matrix with added self connections
-        :param c_in: number of input channels
-        :param c_out: number of output channels
-        """
-        super(GC, self).__init__()
-        self.adj = adj
-        self.th = nn.Parameter(torch.FloatTensor(c_in, c_out))
-        self.reset_parameters()
-
-    def forward(self, x):
-        out = torch.einsum("ij,kljm->kilm", self.adj, x)
-        out = torch.matmul(out, self.th)
-        return F.relu(out).permute(0, 2, 1, 3)
-
-    def reset_parameters(self):
-        """ Applies z-score normalization"""
-        std = 1./math.sqrt(self.th.shape[1])
-        self.th.data.uniform_(-std, std)
-
-
 def chebyshev_convolution(laplacian, signal, weights, k, t0, act_func):
     # (num_nodes, num_nodes) x (batch_size, num_nodes, in_feat) x (c_in, c_out)
     out = torch.matmul(torch.matmul(t0, signal), weights[0])  # (batch_size, num_nodes, c_out)
@@ -47,6 +23,36 @@ def chebyshev_convolution(laplacian, signal, weights, k, t0, act_func):
         out = act_func(out)
 
     return out
+
+
+class GC(nn.Module):
+    def __init__(self, adj, args, c_in, c_out, num_nodes, act_func=None):
+        """Graph Convolution operator that sums over the neighbors
+
+        :param adj: Normalized adjacency matrix with added self connections
+        :param c_in: number of input channels
+        :param c_out: number of output channels
+        """
+        super(GC, self).__init__()
+        if args.learnable_l:
+            self.adj = Parameter(adj)
+        else:
+            self.adj = adj
+        self.th = nn.Parameter(torch.FloatTensor(c_in, c_out))
+        self.act_func = act_func
+        self.reset_parameters()
+
+    def forward(self, x):
+        out = torch.einsum("ij,kljm->kilm", self.adj, x)
+        out = torch.matmul(out, self.th)
+        if self.act_func:
+            out = self.act_func(out)
+        return out.permute(0, 2, 1, 3)
+
+    def reset_parameters(self):
+        """ Applies z-score normalization"""
+        std = 1./math.sqrt(self.th.shape[1])
+        self.th.data.uniform_(-std, std)
 
 
 class SGC(nn.Module):
@@ -79,75 +85,6 @@ class SGC(nn.Module):
         """
         out = chebyshev_convolution(self.ws, x, self.ts, self.cs, self.t0, self.act_func)
         return out
-
-
-class ASGC(nn.Module):
-    def __init__(self, adj, args, c_in, c_out, num_nodes, act_func=None):
-        super(ASGC, self).__init__()
-        self.cs = args.cs
-        self.gru = nn.GRU(12, num_nodes)
-        self.ts = Parameter(torch.rand((self.cs, c_in, c_out)))
-        self.wq = Parameter(torch.rand(num_nodes, 1))
-        self.wk = Parameter(torch.rand(num_nodes, 1))
-        self.param_list = [self.ts, self.wq, self.wk]
-
-        self.register_buffer('t0', torch.eye(num_nodes, num_nodes))
-        self.act_func = act_func
-        self.dropout = nn.Dropout(p=args.dropout_att)
-        self.reset_parameters()
-
-    def reset_parameters(self):
-        for parameter in self.param_list:
-            std = .1 / math.sqrt(parameter.size(1))
-            parameter.data.uniform_(-std, std)
-
-    def self_graph_att(self, x):
-        x = x.permute(0, 2, 1).contiguous()
-        bat, N, fea = x.size()
-        key = torch.matmul(x, self.wk)
-        query = torch.matmul(x, self.wq)
-        data = key.repeat(1, 1, N).view(bat, N * N, 1) + query.repeat(1, N, 1)
-        data = data.squeeze(2)
-        data = data.view(bat, N, -1)
-        data = F.leaky_relu(data)
-        att = F.softmax(data, dim=2)
-        att = self.dropout(att)
-        return att
-
-    def latent_correlation_layer(self, x):
-        x = x[:, :, :, 0]
-        x, _ = self.gru(x.permute(2, 0, 1).contiguous())
-        x = x.permute(1, 0, 2).contiguous()
-        att = self.self_graph_att(x)
-        att = torch.mean(att, dim=0)
-        degree = torch.sum(att, dim=1)
-        # laplacian is sym or not
-        att = 0.5 * (att + att.T)
-        degree_l = torch.diag(degree)
-        d = torch.diag(1 / (torch.sqrt(degree) + 1e-7))
-        laplacian = torch.matmul(d, torch.matmul(degree_l - att, d))
-        return laplacian
-
-    def forward(self, x):
-        """
-        Spectral Graph Convolution operator approximated with Chebyshev polynomials
-
-        :param x: graph signal at time [t-time_steps + 1,...,t] (batch_size, time_steps, num_nodes, c_in)
-        :return: convolved signal at time [t-time_steps + 1,...,t] (batch_size, time_steps, num_nodes, c_out)
-        """
-        laplacian = self.latent_correlation_layer(x)
-        out = chebyshev_convolution(laplacian, x, self.ts, self.cs, self.t0, self.act_func)
-        return out
-
-
-class ASGCP(nn.Module):
-    def __init__(self, adj, args, c_in, c_out, num_nodes, act_func=None):
-        super(ASGCP, self).__init__()
-        self.sgc = SGC(adj, args, c_in, c_out, num_nodes, act_func)
-        self.asgc = ASGC(adj, args, c_in, c_out, num_nodes, act_func)
-
-    def forward(self, x):
-        return self.sgc(x) + self.asgc(x)
 
 
 class GlobalSLC(nn.Module):
@@ -195,6 +132,112 @@ class GlobalSLC(nn.Module):
         out_d = chebyshev_convolution(wd, x, self.td, self.cd, self.t0, self.act_func)
         output = out_s + out_d
         return output
+
+
+class AttentionalConvolution(nn.Module):
+    def __init__(self, adj, args, c_in, c_out, num_nodes, act_func=None):
+        super(AttentionalConvolution, self).__init__()
+        self.gru = nn.GRU(12, num_nodes)
+        self.wq = Parameter(torch.rand(num_nodes, 1))
+        self.wk = Parameter(torch.rand(num_nodes, 1))
+        self.dropout = nn.Dropout(p=args.dropout_att)
+        self.c_in = c_in
+        self.c_out = c_out
+        self.act_func = act_func
+
+    def self_graph_att(self, x):
+        x = x.permute(0, 2, 1).contiguous()
+        bat, N, fea = x.size()
+        key = torch.matmul(x, self.wk)
+        query = torch.matmul(x, self.wq)
+        data = key.repeat(1, 1, N).view(bat, N * N, 1) + query.repeat(1, N, 1)
+        data = data.squeeze(2)
+        data = data.view(bat, N, -1)
+        data = F.leaky_relu(data)
+        att = F.softmax(data, dim=2)
+        att = self.dropout(att)
+        return att
+
+    def latent_correlation_layer(self, x):
+        x = x[:, :, :, 0]
+        x, _ = self.gru(x.permute(2, 0, 1).contiguous())
+        x = x.permute(1, 0, 2).contiguous()
+        att = self.self_graph_att(x)
+        att = torch.mean(att, dim=0)
+        degree = torch.sum(att, dim=1)
+        adj = 0.5 * (att + att.T)
+        return adj, degree
+
+    def get_laplacian(self, x):
+        att, degree = self.latent_correlation_layer(x)
+        degree_l = torch.diag(degree)
+        d = torch.diag(1 / (torch.sqrt(degree) + 1e-7))
+        laplacian = torch.matmul(d, torch.matmul(degree_l - att, d))
+        return laplacian
+
+
+class AGC(AttentionalConvolution):
+    def __init__(self, adj, args, c_in, c_out, num_nodes, act_func=None):
+        """Attentional Graph Convolution operator that sums over the neighbors
+
+        :param adj: Normalized adjacency matrix with added self connections
+        :param c_in: number of input channels
+        :param c_out: number of output channels
+        """
+        super(AGC, self).__init__(adj, args, c_in, c_out, num_nodes, act_func)
+        self.th = nn.Parameter(torch.FloatTensor(c_in, c_out))
+
+        self.reset_parameters()
+
+    def forward(self, x):
+        adj, _ = self.latent_correlation_layer(x)
+        out = torch.einsum("ij,kljm->kilm", adj, x)
+        out = torch.matmul(out, self.th)
+        if self.act_func:
+            out = self.act_func(out)
+        return out.permute(0, 2, 1, 3)
+
+    def reset_parameters(self):
+        """ Applies z-score normalization"""
+        std = 1. / math.sqrt(self.th.shape[1])
+        self.th.data.uniform_(-std, std)
+
+
+class ASGC(AttentionalConvolution):
+    def __init__(self, adj, args, c_in, c_out, num_nodes, act_func=None):
+        super(ASGC, self).__init__(adj, args, c_in, c_out, num_nodes, act_func)
+        self.cs = args.cs
+        self.ts = Parameter(torch.rand((self.cs, c_in, c_out)))
+        self.param_list = [self.ts, self.wq, self.wk]
+
+        self.register_buffer('t0', torch.eye(num_nodes, num_nodes))
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        for parameter in self.param_list:
+            std = .1 / math.sqrt(parameter.size(1))
+            parameter.data.uniform_(-std, std)
+
+    def forward(self, x):
+        """
+        Spectral Graph Convolution operator approximated with Chebyshev polynomials
+
+        :param x: graph signal at time [t-time_steps + 1,...,t] (batch_size, time_steps, num_nodes, c_in)
+        :return: convolved signal at time [t-time_steps + 1,...,t] (batch_size, time_steps, num_nodes, c_out)
+        """
+        laplacian = self.get_laplacian(x)
+        out = chebyshev_convolution(laplacian, x, self.ts, self.cs, self.t0, self.act_func)
+        return out
+
+
+class ASGCP(nn.Module):
+    def __init__(self, adj, args, c_in, c_out, num_nodes, act_func=None):
+        super(ASGCP, self).__init__()
+        self.sgc = SGC(adj, args, c_in, c_out, num_nodes, act_func)
+        self.asgc = ASGC(adj, args, c_in, c_out, num_nodes, act_func)
+
+    def forward(self, x):
+        return self.sgc(x) + self.asgc(x)
 
 
 class TimeBlock(nn.Module):

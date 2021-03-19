@@ -53,7 +53,7 @@ def run_epoch(model, optimizer, dataloader, training=True):
 
 
 if __name__ == "__main__":
-    print(DEVICE)
+    print(args)
 
     # load adjacency matrix
     adj = load_adjacency_matrix(args, DEVICE)
