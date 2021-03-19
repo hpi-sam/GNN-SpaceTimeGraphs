@@ -24,7 +24,9 @@ class P3D(nn.Module):
         self.block3 = P3DCBlock(adj=adj, args=args, in_channels=bottleneck_channels, spatial_channels=spatial_channels,
                                 out_channels=bottleneck_channels, num_nodes=num_nodes)
 
-        self.fc = nn.Linear(num_timesteps * bottleneck_channels, nclass * self.num_out_steps)
+        self.fc = nn.Sequential(nn.Linear(num_timesteps * bottleneck_channels, num_timesteps * bottleneck_channels),
+                                nn.LeakyReLU(),
+                                nn.Linear(num_timesteps * bottleneck_channels, nclass * self.num_out_steps))
         self.dropout = nn.Dropout(p=args.dropout)
 
     def forward(self, x):

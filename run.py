@@ -62,6 +62,10 @@ if __name__ == "__main__":
     model = globals()[args.model](adj, args).to(DEVICE)
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
+    if args.log_file:
+        logging.basicConfig(filename=args.log_file, level=logging.INFO)
+    else:
+        logging.basicConfig(level=logging.INFO, format='# %(message)s')
 
     if args.mode == 'train':
         dataset_train = TrafficDataset(args, split='train')
@@ -71,10 +75,6 @@ if __name__ == "__main__":
 
         # Training
         hist_loss = []
-        if args.log_file:
-            logging.basicConfig(filename=args.log_file, level=logging.INFO)
-        else:
-            logging.basicConfig(level=logging.INFO, format='# %(message)s')
 
         for epoch in range(args.n_epochs):
             ml_train = run_epoch(model, optimizer, dataloader_train)
@@ -88,13 +88,13 @@ if __name__ == "__main__":
         # save the model
         save_model_to_path(args, model)
 
-        np.save(f"losses_on_{args.n_epochs}_epochs", hist_loss)
+        # np.save(f"losses_on_{args.n_epochs}_epochs", hist_loss)
 
     if args.mode == 'test':
         dataset_test = TrafficDataset(args, split='test')
         dataloader_test = DataLoader(dataset_test, batch_size=args.batch_size, shuffle=False, num_workers=1)
 
-        model.load_state_dict(torch.load(MODEL_SAVE_PATH + 'slgcn_global.pt'))
+        model.load_state_dict(torch.load(MODEL_SAVE_PATH + args.model_name + '.pt'))
         optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
         logger.info('Iterate over the test-split...')
