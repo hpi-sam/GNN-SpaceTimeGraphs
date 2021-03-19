@@ -75,6 +75,7 @@ if __name__ == "__main__":
 
         # Training
         hist_loss = []
+        best_loss = np.inf
 
         for epoch in range(args.n_epochs):
             ml_train = run_epoch(model, optimizer, dataloader_train)
@@ -85,10 +86,11 @@ if __name__ == "__main__":
             logger.info('Mean validation-loss over batch: {:.4f}'.format(ml_val))
             hist_loss.append((ml_train, ml_val))
 
-        # save the model
-        save_model_to_path(args, model)
+            # save the model if the loss is lowest
+            if ml_val < best_loss:
+                save_model_to_path(args, model)
 
-        # np.save(f"losses_on_{args.n_epochs}_epochs", hist_loss)
+        np.save(f"losses_on_{args.model_name}", hist_loss)
 
     if args.mode == 'test':
         dataset_test = TrafficDataset(args, split='test')

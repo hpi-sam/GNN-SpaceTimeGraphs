@@ -200,8 +200,8 @@ def save_model_to_path(args, model, model_save_path="./saved_models/"):
         filepath = model_save_path + args.model_name + '.pt'
     else:
         filepath = model_save_path + 'model_001' + '.pt'
-    if path.Path(filepath).is_file():
-        filepath = filepath.replace(filepath[-6:-3], '{0:03}'.format(int(filepath[-6:-3]) + 1))
+    # if path.Path(filepath).is_file():
+    #    filepath = filepath.replace(filepath[-6:-3], '{0:03}'.format(int(filepath[-6:-3]) + 1))
 
     torch.save(model.state_dict(), filepath)
 

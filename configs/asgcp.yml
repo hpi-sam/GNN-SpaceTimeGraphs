@@ -1,24 +1,23 @@
 train_file: "./data/metr_la/train_sts.npz"
 test_file: "./data/metr_la/test_sts.npz"
 val_file: "./data/metr_la/val_sts.npz"
-forecast_horizon: 1
+log_file: "./studies/agcp.log"
+forecast_horizon: [3, 6, 9]
 toy_data: False
-lr: 0.01
-weight_decay: 0.95
+lr: .001
 batch_size: 32
 save_model: True
-model_name: model_001
-n_epochs: 10
-pickled_files:  "metr_la/adj_mx_la.pkl"
-model: "RGCNN"
+model_name: ASGCP
+n_epochs: 30
+pickled_files: "metr_la/adj_mx_la.pkl"
+model: "P3D"
 gpu: True
 
 # model parameters
-"nhid": 100
 "nclass": 1
 "num_nodes": 207
 "num_features": 2
-"nhid_multipliers": [1, 2]
-"num_units": 1000
-"hidden_state_size": 264
-"seq_len": 12
+"bottleneck_channels": 128
+"spatial_channels": 96
+"dropout": 0.0
+"convolution_operator": "ASGCP"

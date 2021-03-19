@@ -1,0 +1,24 @@
+train_file: "./data/metr_la/train_sts.npz"
+test_file: "./data/metr_la/test_sts.npz"
+val_file: "./data/metr_la/val_sts.npz"
+log_file: "./studies/sgc-l.log"
+forecast_horizon: [3, 6, 9]
+toy_data: False
+lr: .001
+batch_size: 32
+save_model: True
+model_name: SGC-l
+n_epochs: 30
+pickled_files: "metr_la/adj_mx_la.pkl"
+model: "P3D"
+gpu: True
+
+# model parameters
+"nclass": 1
+"num_nodes": 207
+"num_features": 2
+"bottleneck_channels": 128
+"spatial_channels": 96
+"dropout": 0.0
+"learnable_l": True
+"convolution_operator": "SGC"

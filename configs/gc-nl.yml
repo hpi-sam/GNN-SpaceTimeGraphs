@@ -1,23 +1,24 @@
 train_file: "./data/metr_la/train_sts.npz"
 test_file: "./data/metr_la/test_sts.npz"
 val_file: "./data/metr_la/val_sts.npz"
-forecast_horizon: [1, 3]
+log_file: "./studies/gc-nl.log"
+forecast_horizon: [3, 6, 9]
 toy_data: False
 lr: .001
-batch_size: 16
+batch_size: 32
 save_model: True
-model_name: model_001
-n_epochs: 10
+model_name: GC-nl
+n_epochs: 30
 pickled_files: "metr_la/adj_mx_la.pkl"
 model: "P3D"
-gpu: False
+gpu: True
 
 # model parameters
 "nclass": 1
 "num_nodes": 207
 "num_features": 2
-"bottleneck_channels": 32
-"spatial_channels": 16
-"dropout": 0.2
+"bottleneck_channels": 128
+"spatial_channels": 96
+"dropout": 0.0
 "learnable_l": False
-"convolution_operator": "ASGC"
+"convolution_operator": "GC"
