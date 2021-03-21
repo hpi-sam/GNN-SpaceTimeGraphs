@@ -1,0 +1,24 @@
+train_file: "./data/pems_bay/train_sts.npz"
+test_file: "./data/pems_bay/test_sts.npz"
+val_file: "./data/pems_bay/val_sts.npz"
+log_file: "./studies/pems_bay/asgc.log"
+forecast_horizon: 3
+toy_data: False
+lr: .001
+batch_size: 16
+save_model: True
+model_name: ASGC
+n_epochs: 30
+pickled_files: "pems_bay/adj_mx_bay.pkl"
+model: "P3D"
+gpu: True
+
+# model parameters
+"nclass": 1
+"num_nodes": 207
+"num_features": 2
+"bottleneck_channels": 128
+"spatial_channels": 96
+"dropout": 0.1
+"dropout_att": 0.5
+"convolution_operator": "ASGC"

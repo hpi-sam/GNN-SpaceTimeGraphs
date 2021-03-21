@@ -1,8 +1,0 @@
-agc.yml
-asgc.yml
-asgcp.yml
-gc-l.yml
-gc-nl.yml
-global-slc.yml
-sgc-l.yml
-sgc-nl.yml
