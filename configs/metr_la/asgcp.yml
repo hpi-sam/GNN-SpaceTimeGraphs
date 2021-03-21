@@ -1,13 +1,13 @@
 train_file: "./data/metr_la/train_sts.npz"
 test_file: "./data/metr_la/test_sts.npz"
 val_file: "./data/metr_la/val_sts.npz"
-log_file: "./studies/global-slc.log"
-forecast_horizon: [3, 6, 9]
+log_file: "./studies/agcp.log"
+forecast_horizon: 3
 toy_data: False
 lr: .001
-batch_size: 32
+batch_size: 16
 save_model: True
-model_name: GlobalSLC
+model_name: ASGCP
 n_epochs: 30
 pickled_files: "metr_la/adj_mx_la.pkl"
 model: "P3D"
@@ -19,6 +19,6 @@ gpu: True
 "num_features": 2
 "bottleneck_channels": 128
 "spatial_channels": 96
-"dropout": 0.0
-"learnable_l": True
-"convolution_operator": "GlobalSLC"
+"dropout": 0.5
+"dropout_att": 0.1
+"convolution_operator": "ASGCP"

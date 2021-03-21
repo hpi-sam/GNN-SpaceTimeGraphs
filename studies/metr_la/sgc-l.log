@@ -1,0 +1,99 @@
+INFO:root:Namespace(batch_size=16, bottleneck_channels=128, cd=6, convolution_operator='SGC', cs=6, dropout=0.1, dropout_att=0.5, forecast_horizon=[3], gpu=True, h_batch_size=None, h_bottleneck_channels=None, h_dropout=None, h_dropout_att=None, h_lr=None, h_spatial_channels=None, hidden_state_size=264, k=8, learnable_l=True, log_file='./studies/sgc-l.log', lr=0.001, mode='train', model='P3D', model_name='SGC-l', my_config='./configs/sgc-l.yml', n_epochs=30, n_hid=100, n_trials=100, nclass=1, nhid_multipliers=None, num_features=2, num_nodes=207, num_units=1000, pickled_files='metr_la/adj_mx_la.pkl', save_model=True, seq_len=12, spatial_channels=96, test_file='./data/metr_la/test_sts.npz', toy_data=False, train_file='./data/metr_la/train_sts.npz', val_file='./data/metr_la/val_sts.npz', weight_decay=0.95)
+INFO:__main__:epoch: 0
+INFO:__main__:Mean train-loss over batch: 126.2249
+INFO:__main__:Mean validation-loss over batch: 109.8663
+INFO:__main__:Save model to path on epoch 0
+INFO:__main__:epoch: 1
+INFO:__main__:Mean train-loss over batch: 80.7199
+INFO:__main__:Mean validation-loss over batch: 107.8583
+INFO:__main__:Save model to path on epoch 1
+INFO:__main__:epoch: 2
+INFO:__main__:Mean train-loss over batch: 75.3737
+INFO:__main__:Mean validation-loss over batch: 102.1705
+INFO:__main__:Save model to path on epoch 2
+INFO:__main__:epoch: 3
+INFO:__main__:Mean train-loss over batch: 74.0766
+INFO:__main__:Mean validation-loss over batch: 79.1406
+INFO:__main__:Save model to path on epoch 3
+INFO:__main__:epoch: 4
+INFO:__main__:Mean train-loss over batch: 71.3726
+INFO:__main__:Mean validation-loss over batch: 82.0125
+INFO:__main__:epoch: 5
+INFO:__main__:Mean train-loss over batch: 70.8429
+INFO:__main__:Mean validation-loss over batch: 94.6697
+INFO:__main__:epoch: 6
+INFO:__main__:Mean train-loss over batch: 69.8339
+INFO:__main__:Mean validation-loss over batch: 82.0121
+INFO:__main__:epoch: 7
+INFO:__main__:Mean train-loss over batch: 68.6848
+INFO:__main__:Mean validation-loss over batch: 84.4692
+INFO:__main__:epoch: 8
+INFO:__main__:Mean train-loss over batch: 68.0688
+INFO:__main__:Mean validation-loss over batch: 86.9523
+INFO:__main__:epoch: 9
+INFO:__main__:Mean train-loss over batch: 67.1006
+INFO:__main__:Mean validation-loss over batch: 83.3445
+INFO:__main__:epoch: 10
+INFO:__main__:Mean train-loss over batch: 66.3732
+INFO:__main__:Mean validation-loss over batch: 88.2674
+INFO:__main__:epoch: 11
+INFO:__main__:Mean train-loss over batch: 66.1616
+INFO:__main__:Mean validation-loss over batch: 85.6259
+INFO:__main__:epoch: 12
+INFO:__main__:Mean train-loss over batch: 66.0879
+INFO:__main__:Mean validation-loss over batch: 87.1571
+INFO:__main__:epoch: 13
+INFO:__main__:Mean train-loss over batch: 64.7623
+INFO:__main__:Mean validation-loss over batch: 79.9979
+INFO:__main__:epoch: 14
+INFO:__main__:Mean train-loss over batch: 62.9590
+INFO:__main__:Mean validation-loss over batch: 92.0989
+INFO:__main__:epoch: 15
+INFO:__main__:Mean train-loss over batch: 66.8818
+INFO:__main__:Mean validation-loss over batch: 85.6665
+INFO:__main__:epoch: 16
+INFO:__main__:Mean train-loss over batch: 63.6488
+INFO:__main__:Mean validation-loss over batch: 82.2834
+INFO:__main__:epoch: 17
+INFO:__main__:Mean train-loss over batch: 60.9755
+INFO:__main__:Mean validation-loss over batch: 91.0269
+INFO:__main__:epoch: 18
+INFO:__main__:Mean train-loss over batch: 64.8090
+INFO:__main__:Mean validation-loss over batch: 82.4921
+INFO:__main__:epoch: 19
+INFO:__main__:Mean train-loss over batch: 61.9073
+INFO:__main__:Mean validation-loss over batch: 83.4867
+INFO:__main__:epoch: 20
+INFO:__main__:Mean train-loss over batch: 63.5291
+INFO:__main__:Mean validation-loss over batch: 79.5937
+INFO:__main__:epoch: 21
+INFO:__main__:Mean train-loss over batch: 60.2508
+INFO:__main__:Mean validation-loss over batch: 81.4174
+INFO:__main__:epoch: 22
+INFO:__main__:Mean train-loss over batch: 59.8276
+INFO:__main__:Mean validation-loss over batch: 82.1315
+INFO:__main__:epoch: 23
+INFO:__main__:Mean train-loss over batch: 61.0002
+INFO:__main__:Mean validation-loss over batch: 80.4327
+INFO:__main__:epoch: 24
+INFO:__main__:Mean train-loss over batch: 60.8205
+INFO:__main__:Mean validation-loss over batch: 81.7282
+INFO:__main__:epoch: 25
+INFO:__main__:Mean train-loss over batch: 61.0514
+INFO:__main__:Mean validation-loss over batch: 79.2381
+INFO:__main__:epoch: 26
+INFO:__main__:Mean train-loss over batch: 57.9880
+INFO:__main__:Mean validation-loss over batch: 82.3397
+INFO:__main__:epoch: 27
+INFO:__main__:Mean train-loss over batch: 59.3316
+INFO:__main__:Mean validation-loss over batch: 82.2910
+INFO:__main__:epoch: 28
+INFO:__main__:Mean train-loss over batch: 57.1408
+INFO:__main__:Mean validation-loss over batch: 90.7545
+INFO:__main__:epoch: 29
+INFO:__main__:Mean train-loss over batch: 57.4159
+INFO:__main__:Mean validation-loss over batch: 83.1897
+INFO:root:Namespace(batch_size=16, bottleneck_channels=128, cd=6, convolution_operator='SGC', cs=6, dropout=0.1, dropout_att=0.5, forecast_horizon=[3], gpu=True, h_batch_size=None, h_bottleneck_channels=None, h_dropout=None, h_dropout_att=None, h_lr=None, h_spatial_channels=None, hidden_state_size=264, k=8, learnable_l=True, log_file='./studies/sgc-l.log', lr=0.001, mode='test', model='P3D', model_name='SGC-l', my_config='./configs/sgc-l.yml', n_epochs=30, n_hid=100, n_trials=100, nclass=1, nhid_multipliers=None, num_features=2, num_nodes=207, num_units=1000, pickled_files='metr_la/adj_mx_la.pkl', save_model=True, seq_len=12, spatial_channels=96, test_file='./data/metr_la/test_sts.npz', toy_data=False, train_file='./data/metr_la/train_sts.npz', val_file='./data/metr_la/val_sts.npz', weight_decay=0.95)
+INFO:__main__:Iterate over the test-split...
+INFO:__main__:Mean loss over test dataset: 108.0006
+INFO:root:Namespace(batch_size=16, bottleneck_channels=128, cd=6, convolution_operator='SGC', cs=6, dropout=0.1, dropout_att=0.5, forecast_horizon=[3], gpu=True, h_batch_size=None, h_bottleneck_channels=None, h_dropout=None, h_dropout_att=None, h_lr=None, h_spatial_channels=None, hidden_state_size=264, k=8, learnable_l=True, log_file='./studies/sgc-l.log', lr=0.001, mode='test', model='P3D', model_name='SGC-l', my_config='./configs/sgc-l.yml', n_epochs=30, n_hid=100, n_trials=100, nclass=1, nhid_multipliers=None, num_features=2, num_nodes=207, num_units=1000, pickled_files='metr_la/adj_mx_la.pkl', save_model=True, seq_len=12, spatial_channels=96, test_file='./data/metr_la/test_sts.npz', toy_data=False, train_file='./data/metr_la/train_sts.npz', val_file='./data/metr_la/val_sts.npz', weight_decay=0.95)

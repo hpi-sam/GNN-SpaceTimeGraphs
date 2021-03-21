@@ -53,8 +53,6 @@ def run_epoch(model, optimizer, dataloader, training=True):
 
 
 if __name__ == "__main__":
-    print(args)
-
     # load adjacency matrix
     adj = load_adjacency_matrix(args, DEVICE)
 
@@ -66,6 +64,9 @@ if __name__ == "__main__":
         logging.basicConfig(filename=args.log_file, level=logging.INFO)
     else:
         logging.basicConfig(level=logging.INFO, format='# %(message)s')
+        
+    print(f"Training model {args.model_name}")
+    logging.info(args)
 
     if args.mode == 'train':
         dataset_train = TrafficDataset(args, split='train')
@@ -88,9 +89,11 @@ if __name__ == "__main__":
 
             # save the model if the loss is lowest
             if ml_val < best_loss:
+                best_loss = ml_val
                 save_model_to_path(args, model)
+                logger.info(f"Save model to path on epoch {epoch}")
 
-        np.save(f"losses_on_{args.model_name}", hist_loss)
+        np.save(f"./studies/losses/losses_on_{args.model_name}", hist_loss)
 
     if args.mode == 'test':
         dataset_test = TrafficDataset(args, split='test')

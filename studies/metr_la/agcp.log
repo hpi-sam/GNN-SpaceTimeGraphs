@@ -1,0 +1,104 @@
+INFO:root:Namespace(batch_size=16, bottleneck_channels=128, cd=6, convolution_operator='ASGCP', cs=6, dropout=0.1, dropout_att=0.5, forecast_horizon=[3], gpu=True, h_batch_size=None, h_bottleneck_channels=None, h_dropout=None, h_dropout_att=None, h_lr=None, h_spatial_channels=None, hidden_state_size=264, k=8, learnable_l=False, log_file='./studies/agcp.log', lr=0.001, mode='train', model='P3D', model_name='ASGCP', my_config='./configs/asgcp.yml', n_epochs=30, n_hid=100, n_trials=100, nclass=1, nhid_multipliers=None, num_features=2, num_nodes=207, num_units=1000, pickled_files='metr_la/adj_mx_la.pkl', save_model=True, seq_len=12, spatial_channels=96, test_file='./data/metr_la/test_sts.npz', toy_data=False, train_file='./data/metr_la/train_sts.npz', val_file='./data/metr_la/val_sts.npz', weight_decay=0.95)
+INFO:__main__:epoch: 0
+INFO:__main__:Mean train-loss over batch: 168.4675
+INFO:__main__:Mean validation-loss over batch: 131.2218
+INFO:__main__:Save model to path on epoch 0
+INFO:__main__:epoch: 1
+INFO:__main__:Mean train-loss over batch: 114.1699
+INFO:__main__:Mean validation-loss over batch: 118.1959
+INFO:__main__:Save model to path on epoch 1
+INFO:__main__:epoch: 2
+INFO:__main__:Mean train-loss over batch: 101.5991
+INFO:__main__:Mean validation-loss over batch: 127.2361
+INFO:__main__:epoch: 3
+INFO:__main__:Mean train-loss over batch: 96.2624
+INFO:__main__:Mean validation-loss over batch: 101.7837
+INFO:__main__:Save model to path on epoch 3
+INFO:__main__:epoch: 4
+INFO:__main__:Mean train-loss over batch: 92.1074
+INFO:__main__:Mean validation-loss over batch: 103.4813
+INFO:__main__:epoch: 5
+INFO:__main__:Mean train-loss over batch: 88.8242
+INFO:__main__:Mean validation-loss over batch: 99.1259
+INFO:__main__:Save model to path on epoch 5
+INFO:__main__:epoch: 6
+INFO:__main__:Mean train-loss over batch: 86.5337
+INFO:__main__:Mean validation-loss over batch: 106.5076
+INFO:__main__:epoch: 7
+INFO:__main__:Mean train-loss over batch: 84.4306
+INFO:__main__:Mean validation-loss over batch: 101.6532
+INFO:__main__:epoch: 8
+INFO:__main__:Mean train-loss over batch: 82.7474
+INFO:__main__:Mean validation-loss over batch: 98.0035
+INFO:__main__:Save model to path on epoch 8
+INFO:__main__:epoch: 9
+INFO:__main__:Mean train-loss over batch: 81.9484
+INFO:__main__:Mean validation-loss over batch: 97.2858
+INFO:__main__:Save model to path on epoch 9
+INFO:__main__:epoch: 10
+INFO:__main__:Mean train-loss over batch: 80.5067
+INFO:__main__:Mean validation-loss over batch: 95.6793
+INFO:__main__:Save model to path on epoch 10
+INFO:__main__:epoch: 11
+INFO:__main__:Mean train-loss over batch: 78.9786
+INFO:__main__:Mean validation-loss over batch: 94.3825
+INFO:__main__:Save model to path on epoch 11
+INFO:__main__:epoch: 12
+INFO:__main__:Mean train-loss over batch: 77.6835
+INFO:__main__:Mean validation-loss over batch: 96.7364
+INFO:__main__:epoch: 13
+INFO:__main__:Mean train-loss over batch: 76.7303
+INFO:__main__:Mean validation-loss over batch: 99.6751
+INFO:__main__:epoch: 14
+INFO:__main__:Mean train-loss over batch: 75.5232
+INFO:__main__:Mean validation-loss over batch: 97.0255
+INFO:__main__:epoch: 15
+INFO:__main__:Mean train-loss over batch: 75.0195
+INFO:__main__:Mean validation-loss over batch: 98.1203
+INFO:__main__:epoch: 16
+INFO:__main__:Mean train-loss over batch: 74.0805
+INFO:__main__:Mean validation-loss over batch: 101.9871
+INFO:__main__:epoch: 17
+INFO:__main__:Mean train-loss over batch: 72.7975
+INFO:__main__:Mean validation-loss over batch: 98.9436
+INFO:__main__:epoch: 18
+INFO:__main__:Mean train-loss over batch: 71.2718
+INFO:__main__:Mean validation-loss over batch: 100.6311
+INFO:__main__:epoch: 19
+INFO:__main__:Mean train-loss over batch: 73.3092
+INFO:__main__:Mean validation-loss over batch: 93.9339
+INFO:__main__:Save model to path on epoch 19
+INFO:__main__:epoch: 20
+INFO:__main__:Mean train-loss over batch: 70.5455
+INFO:__main__:Mean validation-loss over batch: 95.7052
+INFO:__main__:epoch: 21
+INFO:__main__:Mean train-loss over batch: 70.5667
+INFO:__main__:Mean validation-loss over batch: 110.5907
+INFO:__main__:epoch: 22
+INFO:__main__:Mean train-loss over batch: 69.8668
+INFO:__main__:Mean validation-loss over batch: 94.8463
+INFO:__main__:epoch: 23
+INFO:__main__:Mean train-loss over batch: 68.7362
+INFO:__main__:Mean validation-loss over batch: 103.8738
+INFO:__main__:epoch: 24
+INFO:__main__:Mean train-loss over batch: 68.2939
+INFO:__main__:Mean validation-loss over batch: 104.5092
+INFO:__main__:epoch: 25
+INFO:__main__:Mean train-loss over batch: 68.2671
+INFO:__main__:Mean validation-loss over batch: 96.5255
+INFO:__main__:epoch: 26
+INFO:__main__:Mean train-loss over batch: 68.1034
+INFO:__main__:Mean validation-loss over batch: 98.6576
+INFO:__main__:epoch: 27
+INFO:__main__:Mean train-loss over batch: 66.9343
+INFO:__main__:Mean validation-loss over batch: 109.7728
+INFO:__main__:epoch: 28
+INFO:__main__:Mean train-loss over batch: 66.7797
+INFO:__main__:Mean validation-loss over batch: 92.9004
+INFO:__main__:Save model to path on epoch 28
+INFO:__main__:epoch: 29
+INFO:__main__:Mean train-loss over batch: 64.7276
+INFO:__main__:Mean validation-loss over batch: 97.8084
+INFO:root:Namespace(batch_size=16, bottleneck_channels=128, cd=6, convolution_operator='ASGCP', cs=6, dropout=0.1, dropout_att=0.5, forecast_horizon=[3], gpu=True, h_batch_size=None, h_bottleneck_channels=None, h_dropout=None, h_dropout_att=None, h_lr=None, h_spatial_channels=None, hidden_state_size=264, k=8, learnable_l=False, log_file='./studies/agcp.log', lr=0.001, mode='test', model='P3D', model_name='ASGCP', my_config='./configs/asgcp.yml', n_epochs=30, n_hid=100, n_trials=100, nclass=1, nhid_multipliers=None, num_features=2, num_nodes=207, num_units=1000, pickled_files='metr_la/adj_mx_la.pkl', save_model=True, seq_len=12, spatial_channels=96, test_file='./data/metr_la/test_sts.npz', toy_data=False, train_file='./data/metr_la/train_sts.npz', val_file='./data/metr_la/val_sts.npz', weight_decay=0.95)
+INFO:__main__:Iterate over the test-split...
+INFO:__main__:Mean loss over test dataset: 195.6378
