@@ -15,7 +15,7 @@ gpu: True
 
 # model parameters
 "nclass": 1
-"num_nodes": 207
+"num_nodes": 325
 "num_features": 2
 "bottleneck_channels": 128
 "spatial_channels": 96

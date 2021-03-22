@@ -1,0 +1,105 @@
+INFO:root:Namespace(batch_size=16, bottleneck_channels=128, cd=6, convolution_operator='GC', cs=6, dropout=0.1, dropout_att=0.5, forecast_horizon=[3], gpu=True, h_batch_size=None, h_bottleneck_channels=None, h_dropout=None, h_dropout_att=None, h_lr=None, h_spatial_channels=None, hidden_state_size=264, k=8, learnable_l=False, log_file='./studies/pems_bay/gc-nl.log', lr=0.001, mode='train', model='P3D', model_name='GC-nl', my_config='./configs/pems_bay/gc-nl.yml', n_epochs=30, n_hid=100, n_trials=100, nclass=1, nhid_multipliers=None, num_features=2, num_nodes=325, num_units=1000, pickled_files='pems_bay/adj_mx_bay.pkl', save_model=True, seq_len=12, spatial_channels=96, test_file='./data/pems_bay/test_sts.npz', toy_data=False, train_file='./data/pems_bay/train_sts.npz', val_file='./data/pems_bay/val_sts.npz', weight_decay=0.95)
+INFO:__main__:epoch: 0
+INFO:__main__:Mean train-loss over batch: 37.3798
+INFO:__main__:Mean validation-loss over batch: 30.6585
+INFO:__main__:Save model to path on epoch 0
+INFO:__main__:epoch: 1
+INFO:__main__:Mean train-loss over batch: 22.4313
+INFO:__main__:Mean validation-loss over batch: 25.9161
+INFO:__main__:Save model to path on epoch 1
+INFO:__main__:epoch: 2
+INFO:__main__:Mean train-loss over batch: 20.2782
+INFO:__main__:Mean validation-loss over batch: 25.2516
+INFO:__main__:Save model to path on epoch 2
+INFO:__main__:epoch: 3
+INFO:__main__:Mean train-loss over batch: 19.1040
+INFO:__main__:Mean validation-loss over batch: 24.6930
+INFO:__main__:Save model to path on epoch 3
+INFO:__main__:epoch: 4
+INFO:__main__:Mean train-loss over batch: 18.2878
+INFO:__main__:Mean validation-loss over batch: 28.9182
+INFO:__main__:epoch: 5
+INFO:__main__:Mean train-loss over batch: 17.6443
+INFO:__main__:Mean validation-loss over batch: 22.9853
+INFO:__main__:Save model to path on epoch 5
+INFO:__main__:epoch: 6
+INFO:__main__:Mean train-loss over batch: 17.1004
+INFO:__main__:Mean validation-loss over batch: 22.6779
+INFO:__main__:Save model to path on epoch 6
+INFO:__main__:epoch: 7
+INFO:__main__:Mean train-loss over batch: 16.6800
+INFO:__main__:Mean validation-loss over batch: 22.7900
+INFO:__main__:epoch: 8
+INFO:__main__:Mean train-loss over batch: 16.3782
+INFO:__main__:Mean validation-loss over batch: 23.0676
+INFO:__main__:epoch: 9
+INFO:__main__:Mean train-loss over batch: 16.0990
+INFO:__main__:Mean validation-loss over batch: 22.1291
+INFO:__main__:Save model to path on epoch 9
+INFO:__main__:epoch: 10
+INFO:__main__:Mean train-loss over batch: 15.8193
+INFO:__main__:Mean validation-loss over batch: 22.3842
+INFO:__main__:epoch: 11
+INFO:__main__:Mean train-loss over batch: 15.5392
+INFO:__main__:Mean validation-loss over batch: 22.6656
+INFO:__main__:epoch: 12
+INFO:__main__:Mean train-loss over batch: 15.3689
+INFO:__main__:Mean validation-loss over batch: 22.2855
+INFO:__main__:epoch: 13
+INFO:__main__:Mean train-loss over batch: 15.2015
+INFO:__main__:Mean validation-loss over batch: 22.0763
+INFO:__main__:Save model to path on epoch 13
+INFO:__main__:epoch: 14
+INFO:__main__:Mean train-loss over batch: 15.0115
+INFO:__main__:Mean validation-loss over batch: 22.1165
+INFO:__main__:epoch: 15
+INFO:__main__:Mean train-loss over batch: 14.8657
+INFO:__main__:Mean validation-loss over batch: 21.4018
+INFO:__main__:Save model to path on epoch 15
+INFO:__main__:epoch: 16
+INFO:__main__:Mean train-loss over batch: 14.7265
+INFO:__main__:Mean validation-loss over batch: 22.2673
+INFO:__main__:epoch: 17
+INFO:__main__:Mean train-loss over batch: 14.6158
+INFO:__main__:Mean validation-loss over batch: 21.9039
+INFO:__main__:epoch: 18
+INFO:__main__:Mean train-loss over batch: 14.4922
+INFO:__main__:Mean validation-loss over batch: 21.7697
+INFO:__main__:epoch: 19
+INFO:__main__:Mean train-loss over batch: 14.3647
+INFO:__main__:Mean validation-loss over batch: 21.5194
+INFO:__main__:epoch: 20
+INFO:__main__:Mean train-loss over batch: 14.2550
+INFO:__main__:Mean validation-loss over batch: 21.8249
+INFO:__main__:epoch: 21
+INFO:__main__:Mean train-loss over batch: 14.1330
+INFO:__main__:Mean validation-loss over batch: 22.2575
+INFO:__main__:epoch: 22
+INFO:__main__:Mean train-loss over batch: 14.0449
+INFO:__main__:Mean validation-loss over batch: 21.4743
+INFO:__main__:epoch: 23
+INFO:__main__:Mean train-loss over batch: 13.9472
+INFO:__main__:Mean validation-loss over batch: 21.3724
+INFO:__main__:Save model to path on epoch 23
+INFO:__main__:epoch: 24
+INFO:__main__:Mean train-loss over batch: 13.8504
+INFO:__main__:Mean validation-loss over batch: 21.3348
+INFO:__main__:Save model to path on epoch 24
+INFO:__main__:epoch: 25
+INFO:__main__:Mean train-loss over batch: 13.7490
+INFO:__main__:Mean validation-loss over batch: 21.5523
+INFO:__main__:epoch: 26
+INFO:__main__:Mean train-loss over batch: 13.6838
+INFO:__main__:Mean validation-loss over batch: 21.6347
+INFO:__main__:epoch: 27
+INFO:__main__:Mean train-loss over batch: 13.6357
+INFO:__main__:Mean validation-loss over batch: 21.9324
+INFO:__main__:epoch: 28
+INFO:__main__:Mean train-loss over batch: 13.5897
+INFO:__main__:Mean validation-loss over batch: 21.6763
+INFO:__main__:epoch: 29
+INFO:__main__:Mean train-loss over batch: 13.4568
+INFO:__main__:Mean validation-loss over batch: 21.6048
+INFO:root:Namespace(batch_size=16, bottleneck_channels=128, cd=6, convolution_operator='GC', cs=6, dropout=0.1, dropout_att=0.5, forecast_horizon=[3], gpu=True, h_batch_size=None, h_bottleneck_channels=None, h_dropout=None, h_dropout_att=None, h_lr=None, h_spatial_channels=None, hidden_state_size=264, k=8, learnable_l=False, log_file='./studies/pems_bay/gc-nl.log', lr=0.001, mode='test', model='P3D', model_name='GC-nl', my_config='./configs/pems_bay/gc-nl.yml', n_epochs=30, n_hid=100, n_trials=100, nclass=1, nhid_multipliers=None, num_features=2, num_nodes=325, num_units=1000, pickled_files='pems_bay/adj_mx_bay.pkl', save_model=True, seq_len=12, spatial_channels=96, test_file='./data/pems_bay/test_sts.npz', toy_data=False, train_file='./data/pems_bay/train_sts.npz', val_file='./data/pems_bay/val_sts.npz', weight_decay=0.95)
+INFO:__main__:Iterate over the test-split...
+INFO:__main__:Mean loss over test dataset: 22.0691

@@ -1,0 +1,100 @@
+INFO:root:Namespace(batch_size=16, bottleneck_channels=128, cd=6, convolution_operator='GlobalSLC', cs=6, dropout=0.1, dropout_att=0.5, forecast_horizon=[3], gpu=True, h_batch_size=None, h_bottleneck_channels=None, h_dropout=None, h_dropout_att=None, h_lr=None, h_spatial_channels=None, hidden_state_size=264, k=8, learnable_l=True, log_file='./studies/pems_bay/global-slc.log', lr=0.001, mode='train', model='P3D', model_name='GlobalSLC', my_config='./configs/pems_bay/global-slc.yml', n_epochs=30, n_hid=100, n_trials=100, nclass=1, nhid_multipliers=None, num_features=2, num_nodes=325, num_units=1000, pickled_files='pems_bay/adj_mx_bay.pkl', save_model=True, seq_len=12, spatial_channels=96, test_file='./data/pems_bay/test_sts.npz', toy_data=False, train_file='./data/pems_bay/train_sts.npz', val_file='./data/pems_bay/val_sts.npz', weight_decay=0.95)
+INFO:__main__:epoch: 0
+INFO:__main__:Mean train-loss over batch: 16.4225
+INFO:__main__:Mean validation-loss over batch: 195.6509
+INFO:__main__:Save model to path on epoch 0
+INFO:__main__:epoch: 1
+INFO:__main__:Mean train-loss over batch: 8.4395
+INFO:__main__:Mean validation-loss over batch: 157530273929117088.0000
+INFO:__main__:epoch: 2
+INFO:__main__:Mean train-loss over batch: 7.5782
+INFO:__main__:Mean validation-loss over batch: 12.8002
+INFO:__main__:Save model to path on epoch 2
+INFO:__main__:epoch: 3
+INFO:__main__:Mean train-loss over batch: 7.1733
+INFO:__main__:Mean validation-loss over batch: 2416431449.2234
+INFO:__main__:epoch: 4
+INFO:__main__:Mean train-loss over batch: 6.9730
+INFO:__main__:Mean validation-loss over batch: 1628.6575
+INFO:__main__:epoch: 5
+INFO:__main__:Mean train-loss over batch: 9.8586
+INFO:__main__:Mean validation-loss over batch: 13.2158
+INFO:__main__:epoch: 6
+INFO:__main__:Mean train-loss over batch: 7.9149
+INFO:__main__:Mean validation-loss over batch: 11.7015
+INFO:__main__:Save model to path on epoch 6
+INFO:__main__:epoch: 7
+INFO:__main__:Mean train-loss over batch: 7.0710
+INFO:__main__:Mean validation-loss over batch: 10.9716
+INFO:__main__:Save model to path on epoch 7
+INFO:__main__:epoch: 8
+INFO:__main__:Mean train-loss over batch: 6.6864
+INFO:__main__:Mean validation-loss over batch: 10.8089
+INFO:__main__:Save model to path on epoch 8
+INFO:__main__:epoch: 9
+INFO:__main__:Mean train-loss over batch: 6.4761
+INFO:__main__:Mean validation-loss over batch: 10.6757
+INFO:__main__:Save model to path on epoch 9
+INFO:__main__:epoch: 10
+INFO:__main__:Mean train-loss over batch: 6.3110
+INFO:__main__:Mean validation-loss over batch: 11.4612
+INFO:__main__:epoch: 11
+INFO:__main__:Mean train-loss over batch: 6.1759
+INFO:__main__:Mean validation-loss over batch: 12.0498
+INFO:__main__:epoch: 12
+INFO:__main__:Mean train-loss over batch: 6.0218
+INFO:__main__:Mean validation-loss over batch: 6805.5483
+INFO:__main__:epoch: 13
+INFO:__main__:Mean train-loss over batch: 5.8733
+INFO:__main__:Mean validation-loss over batch: 169.5324
+INFO:__main__:epoch: 14
+INFO:__main__:Mean train-loss over batch: 5.7825
+INFO:__main__:Mean validation-loss over batch: 77.4465
+INFO:__main__:epoch: 15
+INFO:__main__:Mean train-loss over batch: 5.7509
+INFO:__main__:Mean validation-loss over batch: 11.6256
+INFO:__main__:epoch: 16
+INFO:__main__:Mean train-loss over batch: 8.8434
+INFO:__main__:Mean validation-loss over batch: 16.7840
+INFO:__main__:epoch: 17
+INFO:__main__:Mean train-loss over batch: 8.9308
+INFO:__main__:Mean validation-loss over batch: 12.4420
+INFO:__main__:epoch: 18
+INFO:__main__:Mean train-loss over batch: 7.5739
+INFO:__main__:Mean validation-loss over batch: 12.6764
+INFO:__main__:epoch: 19
+INFO:__main__:Mean train-loss over batch: 7.0000
+INFO:__main__:Mean validation-loss over batch: 13.0448
+INFO:__main__:epoch: 20
+INFO:__main__:Mean train-loss over batch: 6.6646
+INFO:__main__:Mean validation-loss over batch: 11.6131
+INFO:__main__:epoch: 21
+INFO:__main__:Mean train-loss over batch: 6.3952
+INFO:__main__:Mean validation-loss over batch: 11.9479
+INFO:__main__:epoch: 22
+INFO:__main__:Mean train-loss over batch: 6.1923
+INFO:__main__:Mean validation-loss over batch: 12.7444
+INFO:__main__:epoch: 23
+INFO:__main__:Mean train-loss over batch: 6.0344
+INFO:__main__:Mean validation-loss over batch: 12.1002
+INFO:__main__:epoch: 24
+INFO:__main__:Mean train-loss over batch: 5.8586
+INFO:__main__:Mean validation-loss over batch: 23.5885
+INFO:__main__:epoch: 25
+INFO:__main__:Mean train-loss over batch: 5.7217
+INFO:__main__:Mean validation-loss over batch: 12.0136
+INFO:__main__:epoch: 26
+INFO:__main__:Mean train-loss over batch: 5.6034
+INFO:__main__:Mean validation-loss over batch: 11.9795
+INFO:__main__:epoch: 27
+INFO:__main__:Mean train-loss over batch: 5.5029
+INFO:__main__:Mean validation-loss over batch: 11.9915
+INFO:__main__:epoch: 28
+INFO:__main__:Mean train-loss over batch: 5.4008
+INFO:__main__:Mean validation-loss over batch: 12.2296
+INFO:__main__:epoch: 29
+INFO:__main__:Mean train-loss over batch: 5.3009
+INFO:__main__:Mean validation-loss over batch: 12.0863
+INFO:root:Namespace(batch_size=16, bottleneck_channels=128, cd=6, convolution_operator='GlobalSLC', cs=6, dropout=0.1, dropout_att=0.5, forecast_horizon=[3], gpu=True, h_batch_size=None, h_bottleneck_channels=None, h_dropout=None, h_dropout_att=None, h_lr=None, h_spatial_channels=None, hidden_state_size=264, k=8, learnable_l=True, log_file='./studies/pems_bay/global-slc.log', lr=0.001, mode='test', model='P3D', model_name='GlobalSLC', my_config='./configs/pems_bay/global-slc.yml', n_epochs=30, n_hid=100, n_trials=100, nclass=1, nhid_multipliers=None, num_features=2, num_nodes=325, num_units=1000, pickled_files='pems_bay/adj_mx_bay.pkl', save_model=True, seq_len=12, spatial_channels=96, test_file='./data/pems_bay/test_sts.npz', toy_data=False, train_file='./data/pems_bay/train_sts.npz', val_file='./data/pems_bay/val_sts.npz', weight_decay=0.95)
+INFO:__main__:Iterate over the test-split...
+INFO:__main__:Mean loss over test dataset: 11.3468
