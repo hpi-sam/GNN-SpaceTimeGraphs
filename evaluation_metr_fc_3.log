@@ -1,0 +1,80 @@
+Evaluating model AGC on training data...
+Statistics on training data:
+RMSE: 8.2488
+MAE: 4.4049
+MAPE: 9.8384
+Evaluating model AGC on testing data...
+Statistics on testing data:
+RMSE: 12.1752
+MAE: 6.2184
+MAPE: 12.4006
+Evaluating model ASGC on training data...
+Statistics on training data:
+RMSE: 7.8913
+MAE: 4.1524
+MAPE: 9.0643
+Evaluating model ASGC on testing data...
+Statistics on testing data:
+RMSE: 11.9170
+MAE: 5.8346
+MAPE: 11.2038
+Evaluating model ASGCP on training data...
+Statistics on training data:
+RMSE: 11.1141
+MAE: 6.7339
+MAPE: 15.7683
+Evaluating model ASGCP on testing data...
+Statistics on testing data:
+RMSE: 13.3904
+MAE: 7.7790
+MAPE: 17.8712
+Evaluating model GC-l on training data...
+Statistics on training data:
+RMSE: 8.0482
+MAE: 4.0877
+MAPE: 8.6459
+Evaluating model GC-l on testing data...
+Statistics on testing data:
+RMSE: 10.2989
+MAE: 5.1263
+MAPE: 10.3097
+Evaluating model GC-nl on training data...
+Statistics on training data:
+RMSE: 8.6661
+MAE: 4.4661
+MAPE: 9.8858
+Evaluating model GC-nl on testing data...
+Statistics on testing data:
+RMSE: 11.6882
+MAE: 5.9290
+MAPE: 12.0894
+Evaluating model GlobalSLC on training data...
+Statistics on training data:
+RMSE: 128.0892
+MAE: 6.4738
+MAPE: 12.4677
+Evaluating model GlobalSLC on testing data...
+Statistics on testing data:
+RMSE: 10.2444
+MAE: 5.1497
+MAPE: 10.1958
+Evaluating model SGC-l on training data...
+Statistics on training data:
+RMSE: 8.1145
+MAE: 4.0453
+MAPE: 8.5290
+Evaluating model SGC-l on testing data...
+Statistics on testing data:
+RMSE: 10.3951
+MAE: 5.2377
+MAPE: 10.4535
+Evaluating model SGC-nl on training data...
+Statistics on training data:
+RMSE: 16.6387
+MAE: 12.4493
+MAPE: 27.7754
+Evaluating model SGC-nl on testing data...
+Statistics on testing data:
+RMSE: 17.9985
+MAE: 13.3680
+MAPE: 30.3511
